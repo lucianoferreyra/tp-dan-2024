@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: 'prom/prometheus:latest'
+    ports:
+      - 6590:9090  
+    volumes:
+      - ./cfg/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command: '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - backend-net
+
+  grafana:
+    image: 'grafana/grafana:latest'
+    ports:
+      - '6591:3000'
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    links:
+      - prometheus:prometheus      
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - backend-net
+
+networks:
+  backend-net:
+    external: true
+
+volumes:
+  prometheus-data:  # Named volume for persistence
