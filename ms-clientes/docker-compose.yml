@@ -46,6 +46,7 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_EUREKA_DEFAULT_ZONE: http://ms-eureka-svc:8761/eureka/
       SPRING_INSTANCIA: ms-clientes-svc-1
+      DAN_CLIENTES_MAXIMO_DESCUBIERTO_DEFAULT: 10000
     ports:
       - "6080:8080"
     depends_on:
@@ -70,6 +71,7 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_EUREKA_DEFAULT_ZONE: http://ms-eureka-svc:8761/eureka/
       SPRING_INSTANCIA: ms-clientes-svc-2
+      DAN_CLIENTES_MAXIMO_DESCUBIERTO_DEFAULT: 10000
     ports:
       - "6081:8080"
     depends_on:
@@ -94,6 +96,7 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_EUREKA_DEFAULT_ZONE: http://ms-eureka-svc:8761/eureka/
       SPRING_INSTANCIA: ms-clientes-svc-3
+      DAN_CLIENTES_MAXIMO_DESCUBIERTO_DEFAULT: 10000
     ports:
       - "6082:8080"
     depends_on:
