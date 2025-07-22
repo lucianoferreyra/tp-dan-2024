@@ -2,14 +2,8 @@ package isi.dan.msclientes.model;
 
 import java.math.BigDecimal;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import isi.dan.msclientes.enums.EstadoObra;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -40,4 +34,6 @@ public class Obra {
     @Min(value=100, message = "El presupuesto debe ser al menos de 100")
     private BigDecimal presupuesto;
 
+    @Enumerated(EnumType.STRING)
+    private EstadoObra estado;
 }

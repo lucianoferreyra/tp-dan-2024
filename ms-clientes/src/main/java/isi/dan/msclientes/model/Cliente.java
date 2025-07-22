@@ -35,5 +35,8 @@ public class Cliente {
     @Column(name="MAXIMO_DESCUBIERTO")
     @Min(value = 10000, message = "El descubierto maximo debe ser al menos 10000")
     private BigDecimal maximoDescubierto;
+
+    @Column(name="MAXIMO_OBRAS")
+    private Integer maximoCantidadObrasEnEjecucion;
     
 }
