@@ -8,7 +8,9 @@ import isi.dan.msclientes.aop.LogExecutionTime;
 import isi.dan.msclientes.model.Obra;
 import isi.dan.msclientes.servicios.ObraService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -52,5 +54,23 @@ public class ObraController {
         }
         obraService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/finalizar")
+    @LogExecutionTime
+    public ResponseEntity<Map<String, Object>> finalizarObra(@PathVariable Integer id) {
+        try {
+            Obra obraFinalizada = obraService.finalizarObra(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("obra", obraFinalizada);
+            response.put("mensaje", "Obra finalizada exitosamente");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 }
