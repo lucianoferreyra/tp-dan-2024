@@ -87,4 +87,25 @@ public class ObraService {
             }
         }
     }
+
+    @Transactional
+    public Obra pasarAPendiente(Integer obraId) {
+        Optional<Obra> obraOpt = findById(obraId);
+        if (obraOpt.isEmpty()) {
+            throw new RuntimeException("Obra no encontrada con ID: " + obraId);
+        }
+
+        Obra obra = obraOpt.get();
+        if (obra.getEstado() == EstadoObra.PENDIENTE) {
+            throw new RuntimeException("La obra ya está en estado pendiente");
+        }
+
+        if (obra.getEstado() == EstadoObra.FINALIZADA) {
+            throw new RuntimeException("No se puede pasar una obra finalizada a pendiente");
+        }
+
+        // Change to pending status - NO automatic enabling of other works
+        obra.setEstado(EstadoObra.PENDIENTE);
+        return update(obra);
+    }
 }

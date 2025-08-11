@@ -73,4 +73,22 @@ public class ObraController {
             return ResponseEntity.badRequest().body(error);
         }
     }
+
+    @PutMapping("/{id}/pendiente")
+    @LogExecutionTime
+    public ResponseEntity<Map<String, Object>> pasarAPendiente(@PathVariable Integer id) {
+        try {
+            Obra obraPendiente = obraService.pasarAPendiente(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("obra", obraPendiente);
+            response.put("mensaje", "Obra pasada a estado pendiente exitosamente");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 }
