@@ -91,4 +91,22 @@ public class ObraController {
             return ResponseEntity.badRequest().body(error);
         }
     }
+
+    @PutMapping("/{id}/habilitar")
+    @LogExecutionTime
+    public ResponseEntity<Map<String, Object>> pasarAHabilitada(@PathVariable Integer id) {
+        try {
+            Obra obraHabilitada = obraService.pasarAHabilitada(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("obra", obraHabilitada);
+            response.put("mensaje", "Obra habilitada exitosamente");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 }

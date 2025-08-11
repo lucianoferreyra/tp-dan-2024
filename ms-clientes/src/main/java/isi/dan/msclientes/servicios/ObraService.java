@@ -108,4 +108,41 @@ public class ObraService {
         obra.setEstado(EstadoObra.PENDIENTE);
         return update(obra);
     }
+
+    @Transactional
+    public Obra pasarAHabilitada(Integer obraId) {
+        Optional<Obra> obraOpt = findById(obraId);
+        if (obraOpt.isEmpty()) {
+            throw new RuntimeException("Obra no encontrada con ID: " + obraId);
+        }
+
+        Obra obra = obraOpt.get();
+        if (obra.getEstado() == EstadoObra.HABILITADA) {
+            throw new RuntimeException("La obra ya está habilitada");
+        }
+
+        if (obra.getEstado() == EstadoObra.FINALIZADA) {
+            throw new RuntimeException("No se puede habilitar una obra finalizada");
+        }
+
+        Cliente cliente = obra.getCliente();
+        if (cliente == null) {
+            throw new RuntimeException("La obra no tiene cliente asignado");
+        }
+
+        // Check maximum concurrent works limit
+        if (cliente.getMaximoCantidadObrasEnEjecucion() != null) {
+            long obrasActivas = obraRepository.countByClienteAndEstado(cliente, EstadoObra.HABILITADA);
+
+            if (obrasActivas >= cliente.getMaximoCantidadObrasEnEjecucion()) {
+                throw new RuntimeException("El cliente ha alcanzado el máximo de obras en ejecución (" +
+                        cliente.getMaximoCantidadObrasEnEjecucion() +
+                        "). Obras activas: " + obrasActivas);
+            }
+        }
+
+        // Enable the work
+        obra.setEstado(EstadoObra.HABILITADA);
+        return update(obra);
+    }
 }
