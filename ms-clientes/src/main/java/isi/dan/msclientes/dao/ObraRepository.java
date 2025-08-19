@@ -27,4 +27,11 @@ public interface ObraRepository extends JpaRepository<Obra, Integer> {
     @Query("SELECT o FROM Obra o WHERE o.cliente = :cliente AND o.estado = :estado ORDER BY o.id ASC")
     List<Obra> findByClienteAndEstadoOrderByIdAsc(@Param("cliente") Cliente cliente,
             @Param("estado") EstadoObra estado);
+
+    // Find works by client
+    List<Obra> findByCliente(Cliente cliente);
+
+    // Find works by status
+    List<Obra> findByEstado(EstadoObra estado);
+
 }
