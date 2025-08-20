@@ -36,14 +36,14 @@ public class ClienteServiceTest {
   @BeforeEach
   void setUp() {
     clienteValido = new Cliente();
-    clienteValido.setNombre("Juan Pérez");
+    clienteValido.setNombre("Juan");
     clienteValido.setCorreoElectronico("juan.perez@email.com");
     clienteValido.setCuit("20-12345678-9");
     clienteValido.setMaximoDescubierto(BigDecimal.valueOf(10000));
 
     clienteExistente = new Cliente();
     clienteExistente.setId(1);
-    clienteExistente.setNombre("María González");
+    clienteExistente.setNombre("María");
     clienteExistente.setCorreoElectronico("maria.gonzalez@email.com");
     clienteExistente.setCuit("27-98765432-1");
     clienteExistente.setMaximoDescubierto(BigDecimal.valueOf(15000));
@@ -184,7 +184,7 @@ public class ClienteServiceTest {
     // Given
     Cliente clienteActualizado = new Cliente();
     clienteActualizado.setId(1);
-    clienteActualizado.setNombre("Juan Carlos Pérez López");
+    clienteActualizado.setNombre("Juan Carlos");
     clienteActualizado.setCorreoElectronico("juan.carlos@email.com");
     clienteActualizado.setCuit("20-12345678-9");
     clienteActualizado.setMaximoDescubierto(BigDecimal.valueOf(20000));
