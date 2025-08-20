@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Service
 public class ClienteService {
-    
+
     @Autowired
     private ClienteRepository clienteRepository;
 
@@ -26,6 +26,10 @@ public class ClienteService {
 
     public Optional<Cliente> findById(Integer id) {
         return clienteRepository.findById(id);
+    }
+
+    public Optional<Cliente> findByEmail(String email) {
+        return clienteRepository.findByCorreoElectronico(email);
     }
 
     public Cliente save(Cliente cliente) {
