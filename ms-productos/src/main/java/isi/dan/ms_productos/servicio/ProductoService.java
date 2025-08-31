@@ -9,8 +9,11 @@ import org.springframework.stereotype.Service;
 
 import isi.dan.ms_productos.conf.RabbitMQConfig;
 import isi.dan.ms_productos.dao.ProductoRepository;
+import isi.dan.ms_productos.dto.ProductoCreateDTO;
 import isi.dan.ms_productos.dto.StockUpdateDTO;
+import isi.dan.ms_productos.exception.CategoriaNotFoundException;
 import isi.dan.ms_productos.exception.ProductoNotFoundException;
+import isi.dan.ms_productos.modelo.Categoria;
 import isi.dan.ms_productos.modelo.Producto;
 
 import java.util.List;
@@ -19,6 +22,10 @@ import java.util.List;
 public class ProductoService {
     @Autowired
     private ProductoRepository productoRepository;
+
+    @Autowired
+    private CategoriaService categoriaService;
+
     Logger log = LoggerFactory.getLogger(ProductoService.class);
 
     @RabbitListener(queues = RabbitMQConfig.STOCK_UPDATE_QUEUE)
@@ -29,9 +36,22 @@ public class ProductoService {
         // verificar el punto de pedido y generar un pedido
     }
 
+    public Producto saveProducto(ProductoCreateDTO productoCreateDTO) throws CategoriaNotFoundException {
+        log.info("Creando producto: {}", productoCreateDTO.getNombre());
 
+        // Buscar la categoría
+        Categoria categoria = categoriaService.getCategoriaById(productoCreateDTO.getCategoriaId());
 
-    public Producto saveProducto(Producto producto) {
+        // Crear el producto con stock inicial 0
+        Producto producto = new Producto(
+                productoCreateDTO.getNombre(),
+                productoCreateDTO.getDescripcion(),
+                categoria,
+                productoCreateDTO.getStockMinimo(),
+                productoCreateDTO.getPrecio(),
+                productoCreateDTO.getDescuentoPromocional());
+
+        log.info("Producto creado con stock inicial 0: {}", producto);
         return productoRepository.save(producto);
     }
 
@@ -39,12 +59,29 @@ public class ProductoService {
         return productoRepository.findAll();
     }
 
-    public Producto getProductoById(Long id) throws ProductoNotFoundException{
+    public Producto getProductoById(Long id) throws ProductoNotFoundException {
         return productoRepository.findById(id).orElseThrow(() -> new ProductoNotFoundException(id));
     }
 
-    public void deleteProducto(Long id) {
+    public void deleteProducto(Long id) throws ProductoNotFoundException {
+        log.info("Eliminando producto del catálogo con ID: {}", id);
+        if (!productoRepository.existsById(id)) {
+            throw new ProductoNotFoundException(id);
+        }
         productoRepository.deleteById(id);
+        log.info("Producto eliminado del catálogo con ID: {}", id);
+    }
+
+    public Producto updateProducto(Long id, Producto producto) throws ProductoNotFoundException {
+        log.info("Actualizando producto con ID: {}", id);
+        Producto existingProducto = getProductoById(id);
+
+        existingProducto.setNombre(producto.getNombre());
+        existingProducto.setDescripcion(producto.getDescripcion());
+        existingProducto.setPrecio(producto.getPrecio());
+        existingProducto.setDescuentoPromocional(producto.getDescuentoPromocional());
+        existingProducto.setStockMinimo(producto.getStockMinimo());
+
+        return productoRepository.save(existingProducto);
     }
 }
-
