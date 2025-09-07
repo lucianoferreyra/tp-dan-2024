@@ -5,11 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import isi.dan.ms_productos.aop.LogExecutionTime;
+import isi.dan.ms_productos.dto.OrdenProvisionDTO;
 import isi.dan.ms_productos.dto.ProductoCreateDTO;
 import isi.dan.ms_productos.exception.CategoriaNotFoundException;
 import isi.dan.ms_productos.exception.ProductoNotFoundException;
@@ -42,6 +42,20 @@ public class ProductoController {
         } catch (CategoriaNotFoundException e) {
             log.warn("Categoría no encontrada con ID: {}", productoCreateDTO.getCategoriaId());
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/provision")
+    @LogExecutionTime
+    public ResponseEntity<Producto> procesarOrdenProvision(@Valid @RequestBody OrdenProvisionDTO ordenProvisionDTO) {
+        log.info("PUT /api/productos/provision - Procesando orden de provisión: {}", ordenProvisionDTO);
+        try {
+            Producto productoActualizado = productoService.procesarOrdenProvision(ordenProvisionDTO);
+            log.info("Orden de provisión procesada exitosamente para producto ID: {}", productoActualizado.getId());
+            return ResponseEntity.ok(productoActualizado);
+        } catch (ProductoNotFoundException e) {
+            log.warn("Producto no encontrado con ID: {}", ordenProvisionDTO.getIdProducto());
+            return ResponseEntity.notFound().build();
         }
     }
 

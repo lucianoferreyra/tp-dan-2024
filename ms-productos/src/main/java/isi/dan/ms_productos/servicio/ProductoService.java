@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 
 import isi.dan.ms_productos.conf.RabbitMQConfig;
 import isi.dan.ms_productos.dao.ProductoRepository;
+import isi.dan.ms_productos.dto.OrdenProvisionDTO;
 import isi.dan.ms_productos.dto.ProductoCreateDTO;
-import isi.dan.ms_productos.dto.StockUpdateDTO;
 import isi.dan.ms_productos.exception.CategoriaNotFoundException;
 import isi.dan.ms_productos.exception.ProductoNotFoundException;
 import isi.dan.ms_productos.modelo.Categoria;
@@ -52,6 +52,30 @@ public class ProductoService {
                 productoCreateDTO.getDescuentoPromocional());
 
         log.info("Producto creado con stock inicial 0: {}", producto);
+        return productoRepository.save(producto);
+    }
+
+    public Producto procesarOrdenProvision(OrdenProvisionDTO ordenProvisionDTO) throws ProductoNotFoundException {
+        log.info("Procesando orden de provisión: {}", ordenProvisionDTO);
+
+        // Buscar el producto
+        Producto producto = getProductoById(ordenProvisionDTO.getIdProducto());
+
+        // Actualizar stock (sumar la cantidad recibida)
+        int nuevoStock = producto.getStockActual() + ordenProvisionDTO.getCantidadRecibida();
+        producto.setStockActual(nuevoStock);
+
+        // Actualizar precio
+        producto.setPrecio(ordenProvisionDTO.getPrecio());
+
+        log.info("Stock actualizado de {} a {} para producto ID: {}",
+                producto.getStockActual() - ordenProvisionDTO.getCantidadRecibida(),
+                nuevoStock,
+                producto.getId());
+        log.info("Precio actualizado a {} para producto ID: {}",
+                ordenProvisionDTO.getPrecio(),
+                producto.getId());
+
         return productoRepository.save(producto);
     }
 
