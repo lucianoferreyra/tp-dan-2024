@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import isi.dan.ms_productos.aop.LogExecutionTime;
+import isi.dan.ms_productos.dto.DescuentoPromocionalDTO;
 import isi.dan.ms_productos.dto.OrdenProvisionDTO;
 import isi.dan.ms_productos.dto.ProductoCreateDTO;
 import isi.dan.ms_productos.exception.CategoriaNotFoundException;
@@ -55,6 +56,24 @@ public class ProductoController {
             return ResponseEntity.ok(productoActualizado);
         } catch (ProductoNotFoundException e) {
             log.warn("Producto no encontrado con ID: {}", ordenProvisionDTO.getIdProducto());
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/descuento")
+    @LogExecutionTime
+    public ResponseEntity<Producto> actualizarDescuentoPromocional(@PathVariable Long id,
+            @Valid @RequestBody DescuentoPromocionalDTO descuentoDTO) {
+        log.info("PUT /api/productos/{}/descuento - Actualizando descuento promocional: {}%",
+                id, descuentoDTO.getDescuentoPromocional());
+        try {
+            Producto productoActualizado = productoService.actualizarDescuentoPromocional(id, descuentoDTO);
+            log.info(
+                    "Descuento promocional actualizado exitosamente para producto ID: {} - Nuevo precio con descuento: {}",
+                    productoActualizado.getId(), productoActualizado.getPrecioConDescuento());
+            return ResponseEntity.ok(productoActualizado);
+        } catch (ProductoNotFoundException e) {
+            log.warn("Producto no encontrado con ID: {}", id);
             return ResponseEntity.notFound().build();
         }
     }

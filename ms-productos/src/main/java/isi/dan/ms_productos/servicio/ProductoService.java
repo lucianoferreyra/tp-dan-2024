@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import isi.dan.ms_productos.conf.RabbitMQConfig;
 import isi.dan.ms_productos.dao.ProductoRepository;
+import isi.dan.ms_productos.dto.DescuentoPromocionalDTO;
 import isi.dan.ms_productos.dto.OrdenProvisionDTO;
 import isi.dan.ms_productos.dto.ProductoCreateDTO;
 import isi.dan.ms_productos.exception.CategoriaNotFoundException;
@@ -75,6 +76,20 @@ public class ProductoService {
         log.info("Precio actualizado a {} para producto ID: {}",
                 ordenProvisionDTO.getPrecio(),
                 producto.getId());
+
+        return productoRepository.save(producto);
+    }
+
+    public Producto actualizarDescuentoPromocional(Long id, DescuentoPromocionalDTO descuentoDTO)
+            throws ProductoNotFoundException {
+        log.info("Actualizando descuento promocional para producto ID: {} - Nuevo descuento: {}%",
+                id, descuentoDTO.getDescuentoPromocional());
+
+        // Buscar el producto
+        Producto producto = getProductoById(id);
+
+        // Actualizar descuento promocional
+        producto.setDescuentoPromocional(descuentoDTO.getDescuentoPromocional());
 
         return productoRepository.save(producto);
     }
