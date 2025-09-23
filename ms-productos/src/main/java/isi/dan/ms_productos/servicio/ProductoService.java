@@ -56,6 +56,10 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
+    public Producto saveProducto(Producto producto) {
+        return productoRepository.save(producto);
+    }
+
     public Producto procesarOrdenProvision(OrdenProvisionDTO ordenProvisionDTO) throws ProductoNotFoundException {
         log.info("Procesando orden de provisión: {}", ordenProvisionDTO);
 
