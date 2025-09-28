@@ -30,6 +30,22 @@ services:
     networks:
       - productos-net
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-container
+    restart: always
+    ports:
+      - "5672:5672"   # Puerto AMQP
+      - "15672:15672" # Puerto Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - productos-net
+      - backend-net
+
   ms-productos-svc-1:
     image: ms-productos-svc:latest
     build:
@@ -49,6 +65,7 @@ services:
       - "6180:8080"
     depends_on:
       - pg-dan
+      - rabbitmq 
     networks:
       - productos-net
       - backend-net
@@ -62,3 +79,4 @@ networks:
 
 volumes:
   pg-data:
+  rabbitmq-data:
