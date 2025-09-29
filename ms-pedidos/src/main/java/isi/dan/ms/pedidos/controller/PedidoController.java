@@ -1,8 +1,11 @@
 package isi.dan.ms.pedidos.controller;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import isi.dan.ms.pedidos.dto.CrearPedidoDTO;
 import isi.dan.ms.pedidos.modelo.Pedido;
 import isi.dan.ms.pedidos.servicio.PedidoService;
 
@@ -11,14 +14,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/pedidos")
 public class PedidoController {
-    
+
     @Autowired
     private PedidoService pedidoService;
 
     @PostMapping
-    public ResponseEntity<Pedido> createPedido(@RequestBody Pedido pedido) {
-        Pedido savedPedido = pedidoService.savePedido(pedido);
-        return ResponseEntity.ok(savedPedido);
+    public ResponseEntity<Pedido> createPedido(@RequestBody CrearPedidoDTO crearPedidoDTO) {
+        try {
+            Pedido pedido = pedidoService.savePedido(crearPedidoDTO);
+            return new ResponseEntity<>(pedido, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping
@@ -38,4 +45,3 @@ public class PedidoController {
         return ResponseEntity.noContent().build();
     }
 }
-
