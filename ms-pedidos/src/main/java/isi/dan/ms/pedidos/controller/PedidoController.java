@@ -9,6 +9,7 @@ import isi.dan.ms.pedidos.dto.CrearPedidoDTO;
 import isi.dan.ms.pedidos.modelo.Pedido;
 import isi.dan.ms.pedidos.servicio.PedidoService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -43,5 +44,15 @@ public class PedidoController {
     public ResponseEntity<Void> deletePedido(@PathVariable String id) {
         pedidoService.deletePedido(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/cliente/{clienteId}/monto-pendiente")
+    public ResponseEntity<BigDecimal> obtenerMontoPendienteCliente(@PathVariable Long clienteId) {
+        try {
+            BigDecimal montoPendiente = pedidoService.calcularMontoPendienteCliente(clienteId);
+            return ResponseEntity.ok(montoPendiente);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(BigDecimal.ZERO);
+        }
     }
 }

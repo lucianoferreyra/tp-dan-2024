@@ -3,6 +3,10 @@ package isi.dan.msclientes.servicios;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import isi.dan.msclientes.dao.ClienteRepository;
 import isi.dan.msclientes.model.Cliente;
@@ -14,8 +18,16 @@ import java.util.Optional;
 @Service
 public class ClienteService {
 
+    private static final Logger log = LoggerFactory.getLogger(ClienteService.class);
+
     @Autowired
     private ClienteRepository clienteRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Value("${ms.pedidos.url:http://localhost:8080}")
+    private String pedidosServiceUrl;
 
     @Value("${dan.clientes.maximo-descubierto-default}")
     private BigDecimal maximoDescubiertoDefault;
@@ -45,5 +57,55 @@ public class ClienteService {
 
     public void deleteById(Integer id) {
         clienteRepository.deleteById(id);
+    }
+
+    public boolean verificarSaldoDisponible(Integer clienteId, BigDecimal montoPedido) {
+        try {
+            // Obtener el cliente
+            Optional<Cliente> clienteOpt = clienteRepository.findById(clienteId);
+            if (!clienteOpt.isPresent()) {
+                log.error("Cliente no encontrado con ID: {}", clienteId);
+                return false;
+            }
+
+            Cliente cliente = clienteOpt.get();
+
+            // Obtener el monto total de pedidos no entregados/rechazados
+            BigDecimal montoCompromisoPendiente = obtenerMontoCompromisoPendiente(clienteId);
+
+            // Calcular el monto total comprometido (pedidos pendientes + nuevo pedido)
+            BigDecimal montoTotalComprometido = montoCompromisoPendiente.add(montoPedido);
+
+            // Verificar si no supera el máximo descubierto
+            boolean tieneSaldo = montoTotalComprometido.compareTo(cliente.getMaximoDescubierto()) <= 0;
+
+            log.info(
+                    "Cliente {}: Máximo descubierto: {}, Compromiso pendiente: {}, Nuevo pedido: {}, Total comprometido: {}, Tiene saldo: {}",
+                    clienteId, cliente.getMaximoDescubierto(), montoCompromisoPendiente,
+                    montoPedido, montoTotalComprometido, tieneSaldo);
+
+            return tieneSaldo;
+
+        } catch (Exception e) {
+            log.error("Error al verificar saldo del cliente {}: {}", clienteId, e.getMessage());
+            return false;
+        }
+    }
+
+    private BigDecimal obtenerMontoCompromisoPendiente(Integer clienteId) {
+        try {
+            String url = pedidosServiceUrl + "/api/pedidos/cliente/" + clienteId + "/monto-pendiente";
+            log.info("Consultando monto pendiente en URL: {}", url);
+
+            BigDecimal monto = restTemplate.getForObject(url, BigDecimal.class);
+            return monto != null ? monto : BigDecimal.ZERO;
+
+        } catch (HttpClientErrorException e) {
+            log.warn("Error al consultar monto pendiente para cliente {}: {}", clienteId, e.getMessage());
+            return BigDecimal.ZERO;
+        } catch (Exception e) {
+            log.error("Error inesperado al consultar monto pendiente para cliente {}: {}", clienteId, e.getMessage());
+            return BigDecimal.ZERO;
+        }
     }
 }

@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,10 +57,17 @@ public class PedidoService {
         log.info("Pedido creado con número: {}", pedido.getNumeroPedido());
 
         // Verificar que el cliente existe
-        ClienteDTO clienteDTO = clienteService.obtenerCliente(crearPedidoDTO.getClienteId());
-        if (clienteDTO == null) {
-            log.error("Cliente no encontrado con ID: {}", crearPedidoDTO.getClienteId());
-            pedido.setEstado(Pedido.EstadoPedido.RECHAZADO);
+        ClienteDTO clienteDTO;
+        try {
+            clienteDTO = clienteService.obtenerCliente(crearPedidoDTO.getClienteId());
+            if (clienteDTO == null) {
+                log.error("Cliente no encontrado con ID: {}", crearPedidoDTO.getClienteId());
+                pedido.setEstado(Pedido.EstadoPedido.RECHAZADO);
+                return pedidoRepository.save(pedido);
+            }
+        } catch (Exception e) {
+            log.error("Error al consultar cliente: {}", e.getMessage());
+            pedido.setEstado(Pedido.EstadoPedido.RECIBIDO);
             return pedidoRepository.save(pedido);
         }
 
@@ -74,10 +82,17 @@ public class PedidoService {
 
         for (CrearPedidoDTO.DetallePedidoDTO detalleDTO : crearPedidoDTO.getDetalles()) {
             // Obtener información real del producto
-            ProductoDTO productoDTO = productoService.obtenerProducto(detalleDTO.getProductoId());
-            if (productoDTO == null) {
-                log.error("Producto no encontrado con ID: {}", detalleDTO.getProductoId());
-                pedido.setEstado(Pedido.EstadoPedido.RECHAZADO);
+            ProductoDTO productoDTO;
+            try {
+                productoDTO = productoService.obtenerProducto(detalleDTO.getProductoId());
+                if (productoDTO == null) {
+                    log.error("Producto no encontrado con ID: {}", detalleDTO.getProductoId());
+                    pedido.setEstado(Pedido.EstadoPedido.RECHAZADO);
+                    return pedidoRepository.save(pedido);
+                }
+            } catch (Exception e) {
+                log.error("Error al consultar producto: {}", e.getMessage());
+                pedido.setEstado(Pedido.EstadoPedido.RECIBIDO);
                 return pedidoRepository.save(pedido);
             }
 
@@ -100,17 +115,29 @@ public class PedidoService {
         log.info("Monto total calculado: {}", montoTotal);
 
         // Paso 2: Verificar saldo del cliente
-        boolean tieneSaldoSuficiente = clienteService.verificarSaldoCliente(
-                crearPedidoDTO.getClienteId(),
-                montoTotal);
+        try {
+            boolean tieneSaldoSuficiente = clienteService.verificarSaldoCliente(
+                    crearPedidoDTO.getClienteId(),
+                    montoTotal);
 
-        if (!tieneSaldoSuficiente) {
-            log.warn("Cliente {} no tiene saldo suficiente para el pedido. Monto requerido: {}",
-                    crearPedidoDTO.getClienteId(), montoTotal);
-            pedido.setEstado(Pedido.EstadoPedido.RECHAZADO);
-            Pedido pedidoRechazado = pedidoRepository.save(pedido);
-            log.info("Pedido {} RECHAZADO por falta de saldo", pedido.getNumeroPedido());
-            return pedidoRechazado;
+            if (!tieneSaldoSuficiente) {
+                log.warn("Cliente {} no tiene saldo suficiente para el pedido. Monto requerido: {}",
+                        crearPedidoDTO.getClienteId(), montoTotal);
+                pedido.setEstado(Pedido.EstadoPedido.RECHAZADO);
+                Pedido pedidoRechazado = pedidoRepository.save(pedido);
+                log.info("Pedido {} RECHAZADO por falta de saldo", pedido.getNumeroPedido());
+                return pedidoRechazado;
+            } else {
+                log.info("Cliente tiene saldo suficiente. Pedido {} pasa a ACEPTADO", pedido.getNumeroPedido());
+                pedido.setEstado(Pedido.EstadoPedido.ACEPTADO);
+            }
+
+        } catch (Exception e) {
+            log.error("Error al verificar saldo del cliente: {}", e.getMessage());
+            pedido.setEstado(Pedido.EstadoPedido.RECIBIDO);
+            Pedido pedidoRecibido = pedidoRepository.save(pedido);
+            log.info("Pedido {} queda en estado RECIBIDO por error en verificación de saldo", pedido.getNumeroPedido());
+            return pedidoRecibido;
         }
 
         log.info("Cliente tiene saldo suficiente. Continuando con verificación de stock...");
@@ -118,37 +145,42 @@ public class PedidoService {
         // Paso 3: Verificar stock y enviar orden para actualización
         boolean todosSuficienteStock = true;
 
-        // Primero verificamos que todos los productos tengan stock suficiente
-        for (DetallePedido detalle : detalles) {
-            boolean tieneStock = productoService.verificarStockDisponible(
-                    detalle.getProducto().getId(),
-                    detalle.getCantidad());
+        try {
+            // Primero verificamos que todos los productos tengan stock suficiente
+            for (DetallePedido detalle : detalles) {
+                boolean tieneStock = productoService.verificarStockDisponible(
+                        detalle.getProducto().getId(),
+                        detalle.getCantidad());
 
-            if (!tieneStock) {
-                log.warn("Producto {} no tiene stock suficiente para cantidad: {}",
-                        detalle.getProducto().getId(), detalle.getCantidad());
-                todosSuficienteStock = false;
-                break;
+                if (!tieneStock) {
+                    log.warn("Producto {} no tiene stock suficiente para cantidad: {}",
+                            detalle.getProducto().getId(), detalle.getCantidad());
+                    todosSuficienteStock = false;
+                    break;
+                }
             }
-        }
 
-        if (!todosSuficienteStock) {
-            log.info("No hay stock suficiente para algunos productos. Pedido {} queda ACEPTADO",
-                    pedido.getNumeroPedido());
-            pedido.setEstado(Pedido.EstadoPedido.ACEPTADO);
-        } else {
-            // Enviar orden de actualización de stock a través de RabbitMQ
-            boolean stockActualizado = enviarOrdenActualizacionStock(pedido);
-
-            if (stockActualizado) {
-                log.info("Orden de actualización de stock enviada correctamente. Pedido {} pasa a EN_PREPARACION",
+            if (!todosSuficienteStock) {
+                log.info("No hay stock suficiente para algunos productos. Pedido {} queda ACEPTADO",
                         pedido.getNumeroPedido());
-                pedido.setEstado(Pedido.EstadoPedido.EN_PREPARACION);
+                // Ya está en ACEPTADO, no cambiar estado
             } else {
-                log.warn("No se pudo enviar la orden de actualización de stock. Pedido {} queda ACEPTADO",
-                        pedido.getNumeroPedido());
-                pedido.setEstado(Pedido.EstadoPedido.ACEPTADO);
+                // Enviar orden de actualización de stock a través de RabbitMQ
+                boolean stockActualizado = enviarOrdenActualizacionStock(pedido);
+
+                if (stockActualizado) {
+                    log.info("Orden de actualización de stock enviada correctamente. Pedido {} pasa a EN_PREPARACION",
+                            pedido.getNumeroPedido());
+                    pedido.setEstado(Pedido.EstadoPedido.EN_PREPARACION);
+                } else {
+                    log.warn("No se pudo enviar la orden de actualización de stock. Pedido {} queda ACEPTADO",
+                            pedido.getNumeroPedido());
+                    // Ya está en ACEPTADO, no cambiar estado
+                }
             }
+        } catch (Exception e) {
+            log.error("Error en verificación de stock: {}", e.getMessage());
+            // Mantener en ACEPTADO si hay errores en la verificación de stock
         }
 
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
@@ -194,6 +226,30 @@ public class PedidoService {
         LocalDateTime now = LocalDateTime.now();
         String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         return "PED-" + timestamp;
+    }
+
+    public BigDecimal calcularMontoPendienteCliente(Long clienteId) {
+        try {
+            // Estados que comprometen el saldo del cliente
+            List<Pedido.EstadoPedido> estadosPendientes = Arrays.asList(
+                    Pedido.EstadoPedido.ACEPTADO,
+                    Pedido.EstadoPedido.EN_PREPARACION,
+                    Pedido.EstadoPedido.CONFIRMADO,
+                    Pedido.EstadoPedido.ENVIADO);
+
+            List<Pedido> pedidosPendientes = pedidoRepository.findByClienteIdAndEstadoIn(clienteId, estadosPendientes);
+
+            BigDecimal montoTotal = pedidosPendientes.stream()
+                    .map(Pedido::getMontoTotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            log.info("Cliente {}: Monto comprometido en pedidos pendientes: {}", clienteId, montoTotal);
+            return montoTotal;
+
+        } catch (Exception e) {
+            log.error("Error al calcular monto pendiente para cliente {}: {}", clienteId, e.getMessage());
+            return BigDecimal.ZERO;
+        }
     }
 
     public List<Pedido> getAllPedidos() {
