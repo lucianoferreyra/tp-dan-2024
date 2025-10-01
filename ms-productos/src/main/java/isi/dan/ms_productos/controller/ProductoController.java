@@ -12,11 +12,13 @@ import isi.dan.ms_productos.aop.LogExecutionTime;
 import isi.dan.ms_productos.dto.DescuentoPromocionalDTO;
 import isi.dan.ms_productos.dto.OrdenProvisionDTO;
 import isi.dan.ms_productos.dto.ProductoCreateDTO;
+import isi.dan.ms_productos.dto.StockUpdateDTO;
 import isi.dan.ms_productos.exception.CategoriaNotFoundException;
 import isi.dan.ms_productos.exception.ProductoNotFoundException;
 import isi.dan.ms_productos.modelo.Producto;
 import isi.dan.ms_productos.servicio.EchoClientFeign;
 import isi.dan.ms_productos.servicio.ProductoService;
+import isi.dan.ms_productos.servicio.StockService;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -26,6 +28,9 @@ import java.util.List;
 public class ProductoController {
     @Autowired
     private ProductoService productoService;
+
+    @Autowired
+    private StockService stockService;
 
     Logger log = LoggerFactory.getLogger(ProductoController.class);
 
@@ -141,6 +146,33 @@ public class ProductoController {
         } catch (ProductoNotFoundException e) {
             log.warn("Producto no encontrado con ID: {}", id);
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Endpoint para verificar stock disponible
+    @GetMapping("/{id}/stock/{cantidad}")
+    public ResponseEntity<Boolean> verificarStockDisponible(
+            @PathVariable Long id,
+            @PathVariable Integer cantidad) {
+        try {
+            Producto producto = productoService.getProductoById(id);
+            boolean tieneStock = producto.getStockActual() >= cantidad;
+            return ResponseEntity.ok(tieneStock);
+        } catch (Exception e) {
+            return ResponseEntity.ok(false);
+        }
+    }
+
+    // Endpoint para actualizar stock de múltiples productos
+    @PostMapping("/stock/actualizar")
+    public ResponseEntity<Boolean> actualizarStock(@RequestBody List<StockUpdateDTO> stockUpdates) {
+        try {
+            for (StockUpdateDTO update : stockUpdates) {
+                stockService.actualizarStockProducto(update.getIdProducto(), update.getCantidad());
+            }
+            return ResponseEntity.ok(true);
+        } catch (Exception e) {
+            return ResponseEntity.ok(false);
         }
     }
 }
