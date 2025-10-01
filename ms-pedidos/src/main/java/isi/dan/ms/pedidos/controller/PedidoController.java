@@ -55,4 +55,22 @@ public class PedidoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(BigDecimal.ZERO);
         }
     }
+
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<Pedido> actualizarEstadoPedido(
+            @PathVariable String id,
+            @RequestParam Pedido.EstadoPedido nuevoEstado) {
+        try {
+            Pedido pedidoActualizado = pedidoService.actualizarEstadoPedido(id, nuevoEstado);
+            if (pedidoActualizado != null) {
+                return ResponseEntity.ok(pedidoActualizado);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

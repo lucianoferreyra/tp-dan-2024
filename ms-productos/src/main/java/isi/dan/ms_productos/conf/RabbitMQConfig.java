@@ -16,11 +16,17 @@ public class RabbitMQConfig {
     // Colas existentes
     public static final String STOCK_UPDATE_QUEUE = "stock.update.queue";
 
-    // Nueva cola para órdenes ejecutadas
+    // Cola para órdenes ejecutadas
     public static final String ORDEN_EJECUTADA_QUEUE = "orden.ejecutada.queue";
     public static final String ORDEN_EJECUTADA_EXCHANGE = "orden.ejecutada.exchange";
     public static final String ORDEN_EJECUTADA_ROUTING_KEY = "orden.ejecutada.routing.key";
 
+    // Devolución de stock
+    public static final String STOCK_DEVOLUCION_QUEUE = "stock.devolucion.queue";
+    public static final String STOCK_DEVOLUCION_EXCHANGE = "stock.devolucion.exchange";
+    public static final String STOCK_DEVOLUCION_ROUTING_KEY = "stock.devolucion";
+
+    // Beans para órdenes ejecutadas
     @Bean
     public Queue stockUpdateQueue() {
         return new Queue(STOCK_UPDATE_QUEUE, true);
@@ -42,6 +48,25 @@ public class RabbitMQConfig {
                 .bind(ordenEjecutadaQueue())
                 .to(ordenEjecutadaExchange())
                 .with(ORDEN_EJECUTADA_ROUTING_KEY);
+    }
+
+    // Beans para devolución de stock
+    @Bean
+    public Queue stockDevolucionQueue() {
+        return new Queue(STOCK_DEVOLUCION_QUEUE, true);
+    }
+
+    @Bean
+    public TopicExchange stockDevolucionExchange() {
+        return new TopicExchange(STOCK_DEVOLUCION_EXCHANGE);
+    }
+
+    @Bean
+    public Binding stockDevolucionBinding() {
+        return BindingBuilder
+                .bind(stockDevolucionQueue())
+                .to(stockDevolucionExchange())
+                .with(STOCK_DEVOLUCION_ROUTING_KEY);
     }
 
     @Bean

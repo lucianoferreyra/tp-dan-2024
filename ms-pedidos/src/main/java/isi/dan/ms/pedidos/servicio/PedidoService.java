@@ -12,6 +12,7 @@ import isi.dan.ms.pedidos.dto.CrearPedidoDTO;
 import isi.dan.ms.pedidos.dto.ItemOrdenDTO;
 import isi.dan.ms.pedidos.dto.OrdenEjecutadaDTO;
 import isi.dan.ms.pedidos.dto.ProductoDTO;
+import isi.dan.ms.pedidos.dto.StockDevolucionDTO;
 import isi.dan.ms.pedidos.modelo.DetallePedido;
 import isi.dan.ms.pedidos.modelo.Pedido;
 import isi.dan.ms.pedidos.modelo.Producto;
@@ -249,6 +250,98 @@ public class PedidoService {
         } catch (Exception e) {
             log.error("Error al calcular monto pendiente para cliente {}: {}", clienteId, e.getMessage());
             return BigDecimal.ZERO;
+        }
+    }
+
+    @Transactional
+    public Pedido actualizarEstadoPedido(String pedidoId, Pedido.EstadoPedido nuevoEstado) {
+        log.info("Actualizando estado del pedido {} a {}", pedidoId, nuevoEstado);
+
+        // Buscar el pedido
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con ID: " + pedidoId));
+
+        // Validar transiciones de estado permitidas
+        if (!esTransicionEstadoValida(pedido.getEstado(), nuevoEstado)) {
+            throw new IllegalStateException(
+                    String.format("No se puede cambiar el estado de %s a %s",
+                            pedido.getEstado(), nuevoEstado));
+        }
+
+        Pedido.EstadoPedido estadoAnterior = pedido.getEstado();
+        pedido.setEstado(nuevoEstado);
+
+        // Si el pedido se cancela, devolver el stock
+        if (nuevoEstado == Pedido.EstadoPedido.CANCELADO) {
+            procesarCancelacionPedido(pedido, estadoAnterior);
+        }
+
+        Pedido pedidoActualizado = pedidoRepository.save(pedido);
+        log.info("Pedido {} actualizado de {} a {}",
+                pedido.getNumeroPedido(), estadoAnterior, nuevoEstado);
+
+        return pedidoActualizado;
+    }
+
+    private boolean esTransicionEstadoValida(Pedido.EstadoPedido estadoActual, Pedido.EstadoPedido nuevoEstado) {
+        // Solo permitir actualizar a ENTREGADO o CANCELADO desde ciertos estados
+        switch (nuevoEstado) {
+            case ENTREGADO:
+                return estadoActual == Pedido.EstadoPedido.ENVIADO;
+            case CANCELADO:
+                return estadoActual == Pedido.EstadoPedido.ACEPTADO ||
+                        estadoActual == Pedido.EstadoPedido.EN_PREPARACION ||
+                        estadoActual == Pedido.EstadoPedido.CONFIRMADO ||
+                        estadoActual == Pedido.EstadoPedido.ENVIADO;
+            default:
+                return false;
+        }
+    }
+
+    private void procesarCancelacionPedido(Pedido pedido, Pedido.EstadoPedido estadoAnterior) {
+        log.info("Procesando cancelación del pedido {}", pedido.getNumeroPedido());
+
+        // Solo devolver stock si el pedido había descontado stock previamente
+        // (es decir, si estaba en EN_PREPARACION o estados posteriores)
+        if (estadoAnterior == Pedido.EstadoPedido.EN_PREPARACION ||
+                estadoAnterior == Pedido.EstadoPedido.CONFIRMADO ||
+                estadoAnterior == Pedido.EstadoPedido.ENVIADO) {
+
+            enviarMensajeDevolucionStock(pedido);
+        } else {
+            log.info("Pedido {} cancelado pero no requiere devolución de stock (estado anterior: {})",
+                    pedido.getNumeroPedido(), estadoAnterior);
+        }
+    }
+
+    private void enviarMensajeDevolucionStock(Pedido pedido) {
+        try {
+            // Crear lista de items para devolución
+            List<StockDevolucionDTO.ItemDevolucionDTO> items = pedido.getDetalles().stream()
+                    .map(detalle -> new StockDevolucionDTO.ItemDevolucionDTO(
+                            detalle.getProducto().getId(),
+                            detalle.getCantidad()))
+                    .collect(Collectors.toList());
+
+            // Crear el DTO de devolución
+            StockDevolucionDTO devolucion = new StockDevolucionDTO(
+                    pedido.getId(),
+                    pedido.getNumeroPedido(),
+                    "Pedido cancelado",
+                    items);
+
+            // Enviar mensaje a RabbitMQ
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.STOCK_DEVOLUCION_EXCHANGE,
+                    RabbitMQConfig.STOCK_DEVOLUCION_ROUTING_KEY,
+                    devolucion);
+
+            log.info("Mensaje de devolución de stock enviado para pedido: {}", pedido.getNumeroPedido());
+
+        } catch (Exception e) {
+            log.error("Error al enviar mensaje de devolución de stock para pedido {}: {}",
+                    pedido.getNumeroPedido(), e.getMessage());
+            // Nota: Podrías implementar un mecanismo de retry o alertas aquí
         }
     }
 

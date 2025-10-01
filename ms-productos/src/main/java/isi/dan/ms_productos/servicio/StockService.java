@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import isi.dan.ms_productos.conf.RabbitMQConfig;
 import isi.dan.ms_productos.dto.ItemOrdenDTO;
 import isi.dan.ms_productos.dto.OrdenEjecutadaDTO;
+import isi.dan.ms_productos.dto.StockDevolucionDTO;
 import isi.dan.ms_productos.exception.ProductoNotFoundException;
 import isi.dan.ms_productos.modelo.Producto;
 
@@ -131,5 +132,51 @@ public class StockService {
 
     log.info("Stock restaurado para producto {} (ID: {}): {} -> {}",
         producto.getNombre(), productoId, stockAnterior, nuevoStock);
+  }
+
+  @RabbitListener(queues = RabbitMQConfig.STOCK_DEVOLUCION_QUEUE)
+  @Transactional
+  public void procesarDevolucionStock(String mensaje) {
+    log.info("Recibido mensaje de devolución de stock: {}", mensaje);
+
+    try {
+      // Parsear el mensaje JSON
+      StockDevolucionDTO devolucion = objectMapper.readValue(mensaje, StockDevolucionDTO.class);
+
+      log.info("Procesando devolución de stock para pedido: {}", devolucion.getNumeroPedido());
+
+      // Devolver stock para cada item
+      for (StockDevolucionDTO.ItemDevolucionDTO item : devolucion.getItems()) {
+        restaurarStockProducto(item.getProductoId(), item.getCantidad());
+      }
+
+      log.info("Devolución de stock completada para pedido: {}", devolucion.getNumeroPedido());
+
+    } catch (Exception e) {
+      log.error("Error procesando devolución de stock: {}", e.getMessage());
+      // Implementar lógica de manejo de errores (retry, dead letter queue, etc.)
+    }
+  }
+
+  @Transactional
+  public void restaurarStockProducto(Long productoId, Integer cantidadARestaurar)
+      throws ProductoNotFoundException {
+
+    log.info("Restaurando stock del producto ID: {}, cantidad a restaurar: {}",
+        productoId, cantidadARestaurar);
+
+    // Obtener el producto
+    Producto producto = productoService.getProductoById(productoId);
+
+    // Restaurar el stock
+    int stockAnterior = producto.getStockActual();
+    int nuevoStock = stockAnterior + cantidadARestaurar;
+    producto.setStockActual(nuevoStock);
+
+    // Guardar cambios
+    productoService.saveProducto(producto);
+
+    log.info("Stock restaurado para producto {} (ID: {}): {} -> {} (restaurado: {})",
+        producto.getNombre(), productoId, stockAnterior, nuevoStock, cantidadARestaurar);
   }
 }
