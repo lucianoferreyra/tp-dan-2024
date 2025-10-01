@@ -47,6 +47,7 @@ services:
       SPRING_EUREKA_DEFAULT_ZONE: http://ms-eureka-svc:8761/eureka/
       SPRING_INSTANCIA: ms-clientes-svc-1
       DAN_CLIENTES_MAXIMO_DESCUBIERTO_DEFAULT: 10000
+      MS_PEDIDOS_URL: http://host.docker.internal:6280
     ports:
       - "6080:8080"
     depends_on:
