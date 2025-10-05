@@ -2,6 +2,7 @@ package isi.dan.ms.pedidos.servicio;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
@@ -17,14 +18,12 @@ public class ClienteService {
   private static final Logger log = LoggerFactory.getLogger(ClienteService.class);
 
   @Autowired
+  @LoadBalanced
   private RestTemplate restTemplate;
-
-  @Value("${ms.clientes.url:http://localhost:8081}")
-  private String clientesServiceUrl;
 
   public ClienteDTO obtenerCliente(Long clienteId) {
     try {
-      String url = clientesServiceUrl + "/api/clientes/" + clienteId;
+      String url = "http://MS-CLIENTES/api/clientes/" + clienteId;
       log.info("Consultando cliente en URL: {}", url);
 
       ClienteDTO cliente = restTemplate.getForObject(url, ClienteDTO.class);
@@ -42,7 +41,7 @@ public class ClienteService {
 
   public boolean verificarSaldoCliente(Long clienteId, BigDecimal montoRequerido) {
     try {
-      String url = clientesServiceUrl + "/api/clientes/" + clienteId + "/saldo/" + montoRequerido;
+      String url = "http://MS-CLIENTES/api/clientes/" + clienteId + "/saldo/" + montoRequerido;
       log.info("Verificando saldo del cliente {} para monto: {}", clienteId, montoRequerido);
 
       Boolean tieneSaldo = restTemplate.getForObject(url, Boolean.class);

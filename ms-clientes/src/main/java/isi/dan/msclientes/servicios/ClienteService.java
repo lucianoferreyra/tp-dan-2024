@@ -2,6 +2,7 @@ package isi.dan.msclientes.servicios;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -24,10 +25,8 @@ public class ClienteService {
     private ClienteRepository clienteRepository;
 
     @Autowired
+    @LoadBalanced
     private RestTemplate restTemplate;
-
-    @Value("${ms.pedidos.url:http://localhost:8080}")
-    private String pedidosServiceUrl;
 
     @Value("${dan.clientes.maximo-descubierto-default}")
     private BigDecimal maximoDescubiertoDefault;
@@ -94,7 +93,7 @@ public class ClienteService {
 
     private BigDecimal obtenerMontoCompromisoPendiente(Integer clienteId) {
         try {
-            String url = pedidosServiceUrl + "/api/pedidos/cliente/" + clienteId + "/monto-pendiente";
+            String url = "http://MS-PEDIDOS/api/pedidos/cliente/" + clienteId + "/monto-pendiente";
             log.info("Consultando monto pendiente en URL: {}", url);
 
             BigDecimal monto = restTemplate.getForObject(url, BigDecimal.class);

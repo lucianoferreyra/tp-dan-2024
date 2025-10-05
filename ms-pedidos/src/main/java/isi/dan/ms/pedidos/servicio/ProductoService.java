@@ -2,6 +2,7 @@ package isi.dan.ms.pedidos.servicio;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
@@ -18,14 +19,12 @@ public class ProductoService {
   private static final Logger log = LoggerFactory.getLogger(ProductoService.class);
 
   @Autowired
+  @LoadBalanced
   private RestTemplate restTemplate;
-
-  @Value("${ms.productos.url:http://localhost:8082}")
-  private String productosServiceUrl;
 
   public ProductoDTO obtenerProducto(Long productoId) {
     try {
-      String url = productosServiceUrl + "/api/productos/" + productoId;
+      String url = "http://MS-PRODUCTOS/api/productos/" + productoId;
       log.info("Consultando producto en URL: {}", url);
 
       ProductoDTO producto = restTemplate.getForObject(url, ProductoDTO.class);
@@ -43,7 +42,7 @@ public class ProductoService {
 
   public boolean verificarStockDisponible(Long productoId, Integer cantidadRequerida) {
     try {
-      String url = productosServiceUrl + "/api/productos/" + productoId + "/stock/" + cantidadRequerida;
+      String url = "http://MS-PRODUCTOS/api/productos/" + productoId + "/stock/" + cantidadRequerida;
       log.info("Verificando stock del producto {} para cantidad: {}", productoId, cantidadRequerida);
 
       Boolean tieneStock = restTemplate.getForObject(url, Boolean.class);
@@ -61,7 +60,7 @@ public class ProductoService {
 
   public boolean actualizarStock(List<StockUpdateDTO> stockUpdates) {
     try {
-      String url = productosServiceUrl + "/api/productos/stock/actualizar";
+      String url = "http://MS-PRODUCTOS/api/productos/stock/actualizar";
       log.info("Actualizando stock para {} productos", stockUpdates.size());
 
       Boolean actualizado = restTemplate.postForObject(url, stockUpdates, Boolean.class);
