@@ -64,6 +64,7 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: dan_user
       SPRING_RABBITMQ_PASSWORD: dan_password
+      SPRING_EUREKA_DEFAULT_ZONE: http://ms-eureka-svc:8761/eureka/
       MS_CLIENTES_URL: http://host.docker.internal:8081
       MS_PRODUCTOS_URL: http://host.docker.internal:8082
     ports:
