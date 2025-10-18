@@ -24,7 +24,7 @@ public class RestControllerException {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> handleOtherExceptions(Exception ex) {
-        logger.error("ERROR MS CLIENTES", ex);
+        logger.error("ERROR MS PRODUCTOS", ex);
         String detalle = ex.getCause() == null ? "Error en producto": ex.getCause().getMessage();
         return new ResponseEntity<ErrorInfo>(new ErrorInfo(Instant.now(),ex.getMessage(),detalle ,HttpStatus.INTERNAL_SERVER_ERROR.value()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
