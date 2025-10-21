@@ -12,6 +12,7 @@ import isi.dan.ms_productos.aop.LogExecutionTime;
 import isi.dan.ms_productos.dto.DescuentoPromocionalDTO;
 import isi.dan.ms_productos.dto.OrdenProvisionDTO;
 import isi.dan.ms_productos.dto.ProductoCreateDTO;
+import isi.dan.ms_productos.dto.ProductoUpdateDTO;
 import isi.dan.ms_productos.dto.StockUpdateDTO;
 import isi.dan.ms_productos.exception.CategoriaNotFoundException;
 import isi.dan.ms_productos.exception.ProductoNotFoundException;
@@ -124,14 +125,18 @@ public class ProductoController {
 
     @PutMapping("/{id}")
     @LogExecutionTime
-    public ResponseEntity<Producto> updateProducto(@PathVariable Long id, @Valid @RequestBody Producto producto) {
+    public ResponseEntity<Producto> updateProducto(@PathVariable Long id,
+            @Valid @RequestBody ProductoUpdateDTO productoDTO) {
         log.info("PUT /api/productos/{}", id);
         try {
-            Producto updatedProducto = productoService.updateProducto(id, producto);
+            Producto updatedProducto = productoService.updateProducto(id, productoDTO);
             return ResponseEntity.ok(updatedProducto);
         } catch (ProductoNotFoundException e) {
             log.warn("Producto no encontrado con ID: {}", id);
             return ResponseEntity.notFound().build();
+        } catch (CategoriaNotFoundException e) {
+            log.warn("Categoría no encontrada con ID: {}", productoDTO.getCategoriaId());
+            return ResponseEntity.badRequest().build();
         }
     }
 

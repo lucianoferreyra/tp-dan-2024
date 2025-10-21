@@ -12,6 +12,7 @@ import isi.dan.ms_productos.dao.ProductoRepository;
 import isi.dan.ms_productos.dto.DescuentoPromocionalDTO;
 import isi.dan.ms_productos.dto.OrdenProvisionDTO;
 import isi.dan.ms_productos.dto.ProductoCreateDTO;
+import isi.dan.ms_productos.dto.ProductoUpdateDTO;
 import isi.dan.ms_productos.exception.CategoriaNotFoundException;
 import isi.dan.ms_productos.exception.ProductoNotFoundException;
 import isi.dan.ms_productos.modelo.Categoria;
@@ -115,15 +116,20 @@ public class ProductoService {
         log.info("Producto eliminado del catálogo con ID: {}", id);
     }
 
-    public Producto updateProducto(Long id, Producto producto) throws ProductoNotFoundException {
+    public Producto updateProducto(Long id, ProductoUpdateDTO productoDTO)
+            throws ProductoNotFoundException, CategoriaNotFoundException {
         log.info("Actualizando producto con ID: {}", id);
         Producto existingProducto = getProductoById(id);
 
-        existingProducto.setNombre(producto.getNombre());
-        existingProducto.setDescripcion(producto.getDescripcion());
-        existingProducto.setPrecio(producto.getPrecio());
-        existingProducto.setDescuentoPromocional(producto.getDescuentoPromocional());
-        existingProducto.setStockMinimo(producto.getStockMinimo());
+        // Buscar la categoría
+        Categoria categoria = categoriaService.getCategoriaById(productoDTO.getCategoriaId());
+
+        existingProducto.setNombre(productoDTO.getNombre());
+        existingProducto.setDescripcion(productoDTO.getDescripcion());
+        existingProducto.setPrecio(productoDTO.getPrecio());
+        existingProducto.setDescuentoPromocional(productoDTO.getDescuentoPromocional());
+        existingProducto.setStockMinimo(productoDTO.getStockMinimo());
+        existingProducto.setCategoria(categoria);
 
         return productoRepository.save(existingProducto);
     }
