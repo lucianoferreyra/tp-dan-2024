@@ -42,7 +42,7 @@ public class ClienteControllerTest {
 
     @Test
     void testGetAll() throws Exception {
-        Mockito.when(clienteService.findAll()).thenReturn(Collections.singletonList(cliente));
+        Mockito.when(clienteService.findAll(null)).thenReturn(Collections.singletonList(cliente));
 
         mockMvc.perform(get("/api/clientes"))
                 .andExpect(status().isOk())

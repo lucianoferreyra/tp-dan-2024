@@ -239,7 +239,7 @@ public class ClienteServiceTest {
     when(clienteRepository.findAll()).thenReturn(clientes);
 
     // When
-    List<Cliente> resultado = clienteService.findAll();
+    List<Cliente> resultado = clienteService.findAll(null);
 
     // Then
     assertThat(resultado).hasSize(2);

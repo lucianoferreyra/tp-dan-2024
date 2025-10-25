@@ -34,8 +34,8 @@ public class ClienteController {
 
     @GetMapping
     @LogExecutionTime
-    public List<Cliente> getAll() {
-        return clienteService.findAll();
+    public List<Cliente> getAll(@RequestParam(required = false) String searchTerm) {
+        return clienteService.findAll(searchTerm);
     }
 
     @GetMapping("/echo")

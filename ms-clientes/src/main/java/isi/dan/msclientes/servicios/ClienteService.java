@@ -15,6 +15,7 @@ import isi.dan.msclientes.model.Cliente;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ClienteService {
@@ -31,8 +32,15 @@ public class ClienteService {
     @Value("${dan.clientes.maximo-descubierto-default}")
     private BigDecimal maximoDescubiertoDefault;
 
-    public List<Cliente> findAll() {
-        return clienteRepository.findAll();
+    public List<Cliente> findAll(String searchTerm) {
+        List<Cliente> clientes = clienteRepository.findAll();
+
+        return clientes.stream()
+                .filter(c -> searchTerm == null || c.getNombre().toLowerCase().contains(searchTerm.toLowerCase()))
+                .filter(c -> searchTerm == null
+                        || c.getCorreoElectronico().toLowerCase().contains(searchTerm.toLowerCase()))
+                .filter(c -> searchTerm == null || c.getCuit().equals(searchTerm))
+                .collect(Collectors.toList());
     }
 
     public Optional<Cliente> findById(Integer id) {
