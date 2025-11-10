@@ -22,6 +22,7 @@ import isi.dan.ms_productos.servicio.ProductoService;
 import isi.dan.ms_productos.servicio.StockService;
 import jakarta.validation.Valid;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -104,9 +105,19 @@ public class ProductoController {
 
     @GetMapping
     @LogExecutionTime
-    public ResponseEntity<List<Producto>> getAllProductos() {
-        log.info("GET /api/productos");
-        List<Producto> productos = productoService.getAllProductos();
+    public ResponseEntity<List<Producto>> getAllProductos(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) BigDecimal precioMin,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(required = false) Integer stockMin,
+            @RequestParam(required = false) Integer stockMax) {
+        
+        log.info("GET /api/productos - Filtros: nombre={}, precioMin={}, precioMax={}, stockMin={}, stockMax={}",
+                nombre, precioMin, precioMax, stockMin, stockMax);
+        
+        List<Producto> productos = productoService.getAllProductos(
+                nombre, precioMin, precioMax, stockMin, stockMax);
+        
         return ResponseEntity.ok(productos);
     }
 

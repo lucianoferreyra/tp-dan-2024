@@ -5,10 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import isi.dan.ms_productos.conf.RabbitMQConfig;
 import isi.dan.ms_productos.dao.ProductoRepository;
+import isi.dan.ms_productos.dao.ProductoSpecification;
 import isi.dan.ms_productos.dto.DescuentoPromocionalDTO;
 import isi.dan.ms_productos.dto.OrdenProvisionDTO;
 import isi.dan.ms_productos.dto.ProductoCreateDTO;
@@ -18,6 +20,7 @@ import isi.dan.ms_productos.exception.ProductoNotFoundException;
 import isi.dan.ms_productos.modelo.Categoria;
 import isi.dan.ms_productos.modelo.Producto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -101,6 +104,19 @@ public class ProductoService {
 
     public List<Producto> getAllProductos() {
         return productoRepository.findAll();
+    }
+
+    public List<Producto> getAllProductos(
+            String nombre,
+            BigDecimal precioMin,
+            BigDecimal precioMax,
+            Integer stockMin,
+            Integer stockMax) {
+        
+        Specification<Producto> spec = ProductoSpecification.withFilters(
+                nombre, precioMin, precioMax, stockMin, stockMax);
+        
+        return productoRepository.findAll(spec);
     }
 
     public Producto getProductoById(Long id) throws ProductoNotFoundException {
