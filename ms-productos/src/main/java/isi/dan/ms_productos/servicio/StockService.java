@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import isi.dan.ms_productos.conf.RabbitMQConfig;
 import isi.dan.ms_productos.dto.ItemOrdenDTO;
 import isi.dan.ms_productos.dto.OrdenEjecutadaDTO;
@@ -22,21 +20,15 @@ public class StockService {
   @Autowired
   private ProductoService productoService;
 
-  @Autowired
-  private ObjectMapper objectMapper;
-
   Logger log = LoggerFactory.getLogger(StockService.class);
 
   @RabbitListener(queues = RabbitMQConfig.ORDEN_EJECUTADA_QUEUE)
   @Transactional
-  public void procesarOrdenEjecutada(String mensaje) {
-    log.info("Recibido mensaje de orden ejecutada: {}", mensaje);
+  public void procesarOrdenEjecutada(OrdenEjecutadaDTO ordenEjecutada) {
+    log.info("Recibido mensaje de orden ejecutada: {}", ordenEjecutada);
+    log.info("Procesando orden ejecutada ID: {}", ordenEjecutada.getOrdenId());
 
     try {
-      // Deserializar el mensaje
-      OrdenEjecutadaDTO ordenEjecutada = objectMapper.readValue(mensaje, OrdenEjecutadaDTO.class);
-      log.info("Procesando orden ejecutada ID: {}", ordenEjecutada.getOrdenId());
-
       // Verificar que la orden esté en estado ejecutada
       if (!"EJECUTADA".equals(ordenEjecutada.getEstado()) &&
           !"CONFIRMADA".equals(ordenEjecutada.getEstado())) {
@@ -136,15 +128,11 @@ public class StockService {
 
   @RabbitListener(queues = RabbitMQConfig.STOCK_DEVOLUCION_QUEUE)
   @Transactional
-  public void procesarDevolucionStock(String mensaje) {
-    log.info("Recibido mensaje de devolución de stock: {}", mensaje);
+  public void procesarDevolucionStock(StockDevolucionDTO devolucion) {
+    log.info("Recibido mensaje de devolución de stock: {}", devolucion);
+    log.info("Procesando devolución de stock para pedido: {}", devolucion.getNumeroPedido());
 
     try {
-      // Parsear el mensaje JSON
-      StockDevolucionDTO devolucion = objectMapper.readValue(mensaje, StockDevolucionDTO.class);
-
-      log.info("Procesando devolución de stock para pedido: {}", devolucion.getNumeroPedido());
-
       // Devolver stock para cada item
       for (StockDevolucionDTO.ItemDevolucionDTO item : devolucion.getItems()) {
         restaurarStockProducto(item.getProductoId(), item.getCantidad());
