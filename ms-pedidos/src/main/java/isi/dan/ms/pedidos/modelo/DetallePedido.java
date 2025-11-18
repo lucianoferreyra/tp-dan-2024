@@ -1,31 +1,20 @@
 package isi.dan.ms.pedidos.modelo;
 
-import jakarta.persistence.*;
+import org.springframework.data.mongodb.core.mapping.Field;
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "detalles_pedido")
 public class DetallePedido {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Field("producto_id")
+    private Long productoId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pedido_id")
-    private Pedido pedido;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "producto_id")
-    private Producto producto;
-
-    @Column(name = "cantidad")
+    @Field("cantidad")
     private Integer cantidad;
 
-    @Column(name = "precio_unitario", precision = 19, scale = 2)
+    @Field("precio_unitario")
     private BigDecimal precioUnitario;
 
-    @Column(name = "monto_linea", precision = 19, scale = 2)
+    @Field("monto_linea")
     private BigDecimal montoLinea;
 
     // Constructor por defecto
@@ -33,36 +22,20 @@ public class DetallePedido {
     }
 
     // Constructor con parámetros
-    public DetallePedido(Producto producto, Integer cantidad, BigDecimal precioUnitario) {
-        this.producto = producto;
+    public DetallePedido(Long productoId, Integer cantidad, BigDecimal precioUnitario) {
+        this.productoId = productoId;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
         this.montoLinea = precioUnitario.multiply(BigDecimal.valueOf(cantidad));
     }
 
     // Getters y Setters
-    public Long getId() {
-        return id;
+    public Long getProductoId() {
+        return productoId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Pedido getPedido() {
-        return pedido;
-    }
-
-    public void setPedido(Pedido pedido) {
-        this.pedido = pedido;
-    }
-
-    public Producto getProducto() {
-        return producto;
-    }
-
-    public void setProducto(Producto producto) {
-        this.producto = producto;
+    public void setProductoId(Long productoId) {
+        this.productoId = productoId;
     }
 
     public Integer getCantidad() {

@@ -1,15 +1,23 @@
-version: '3.8'
+version: "3.8"
 
 services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: dan_user
+      RABBITMQ_DEFAULT_PASS: dan_password
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - backend-net
 
 networks:
   backend-net:
     external: true
+
+volumes:
+  rabbitmq_data:

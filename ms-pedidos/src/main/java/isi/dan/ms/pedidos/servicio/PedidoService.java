@@ -15,7 +15,6 @@ import isi.dan.ms.pedidos.dto.ProductoDTO;
 import isi.dan.ms.pedidos.dto.StockDevolucionDTO;
 import isi.dan.ms.pedidos.modelo.DetallePedido;
 import isi.dan.ms.pedidos.modelo.Pedido;
-import isi.dan.ms.pedidos.modelo.Producto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -97,13 +96,11 @@ public class PedidoService {
                 return pedidoRepository.save(pedido);
             }
 
-            Producto producto = new Producto();
-            producto.setId(productoDTO.getId());
-            producto.setNombre(productoDTO.getNombre());
-            producto.setPrecio(productoDTO.getPrecio());
-
-            DetallePedido detalle = new DetallePedido(producto, detalleDTO.getCantidad(), productoDTO.getPrecio());
-            detalle.setPedido(pedido);
+            // Crear detalle con ID del producto (no objeto completo)
+            DetallePedido detalle = new DetallePedido(
+                    productoDTO.getId(),
+                    detalleDTO.getCantidad(),
+                    productoDTO.getPrecio());
             detalle.calcularMontoLinea();
 
             detalles.add(detalle);
@@ -150,12 +147,12 @@ public class PedidoService {
             // Primero verificamos que todos los productos tengan stock suficiente
             for (DetallePedido detalle : detalles) {
                 boolean tieneStock = productoService.verificarStockDisponible(
-                        detalle.getProducto().getId(),
+                        detalle.getProductoId(),
                         detalle.getCantidad());
 
                 if (!tieneStock) {
                     log.warn("Producto {} no tiene stock suficiente para cantidad: {}",
-                            detalle.getProducto().getId(), detalle.getCantidad());
+                            detalle.getProductoId(), detalle.getCantidad());
                     todosSuficienteStock = false;
                     break;
                 }
@@ -184,9 +181,17 @@ public class PedidoService {
             // Mantener en ACEPTADO si hay errores en la verificación de stock
         }
 
-        Pedido pedidoGuardado = pedidoRepository.save(pedido);
-        log.info("Pedido {} guardado exitosamente con estado: {}",
-                pedidoGuardado.getNumeroPedido(), pedidoGuardado.getEstado());
+        Pedido pedidoGuardado;
+
+        try {
+            pedidoGuardado = pedidoRepository.save(pedido);
+            log.info("Pedido {} guardado exitosamente con estado: {}",
+                    pedidoGuardado.getNumeroPedido(), pedidoGuardado.getEstado());
+        } catch (Exception e) {
+            log.error("Error al guardar el pedido {}: {}",
+                    pedido.getNumeroPedido(), e.getMessage());
+            throw e; // Re-lanzar la excepción para que la transacción se revierta
+        }
 
         return pedidoGuardado;
     }
@@ -196,7 +201,7 @@ public class PedidoService {
             // Convertir detalles del pedido a ItemOrdenDTO
             List<ItemOrdenDTO> items = pedido.getDetalles().stream()
                     .map(detalle -> new ItemOrdenDTO(
-                            detalle.getProducto().getId(),
+                            detalle.getProductoId(), // Ahora usa getProductoId() directamente
                             detalle.getCantidad()))
                     .collect(Collectors.toList());
 
@@ -319,7 +324,7 @@ public class PedidoService {
             // Crear lista de items para devolución
             List<StockDevolucionDTO.ItemDevolucionDTO> items = pedido.getDetalles().stream()
                     .map(detalle -> new StockDevolucionDTO.ItemDevolucionDTO(
-                            detalle.getProducto().getId(),
+                            detalle.getProductoId(), // Ahora usa getProductoId() directamente
                             detalle.getCantidad()))
                     .collect(Collectors.toList());
 

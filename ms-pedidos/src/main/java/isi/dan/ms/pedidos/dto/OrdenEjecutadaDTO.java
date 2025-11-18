@@ -3,7 +3,7 @@ package isi.dan.ms.pedidos.dto;
 import java.util.List;
 
 public class OrdenEjecutadaDTO {
-  private Long ordenId;
+  private String ordenId;
   private String estado;
   private List<ItemOrdenDTO> items;
 
@@ -12,18 +12,18 @@ public class OrdenEjecutadaDTO {
   }
 
   // Constructor con parámetros
-  public OrdenEjecutadaDTO(Long ordenId, String estado, List<ItemOrdenDTO> items) {
+  public OrdenEjecutadaDTO(String ordenId, String estado, List<ItemOrdenDTO> items) {
     this.ordenId = ordenId;
     this.estado = estado;
     this.items = items;
   }
 
   // Getters y Setters
-  public Long getOrdenId() {
+  public String getOrdenId() {
     return ordenId;
   }
 
-  public void setOrdenId(Long ordenId) {
+  public void setOrdenId(String ordenId) {
     this.ordenId = ordenId;
   }
 

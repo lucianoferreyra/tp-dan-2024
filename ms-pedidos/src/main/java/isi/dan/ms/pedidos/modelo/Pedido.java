@@ -3,39 +3,38 @@ package isi.dan.ms.pedidos.modelo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-@Entity
-@Table(name = "pedidos")
+@Document(collection = "pedidos")
 public class Pedido {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id; // Cambiar de Long a String
 
-    @Column(name = "numero_pedido", unique = true)
+    @Field("numero_pedido")
     private String numeroPedido;
 
-    @Column(name = "fecha_pedido")
+    @Field("fecha_pedido")
     private LocalDateTime fechaPedido;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id")
+    @Field("cliente_id")
     private Long clienteId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "obra_id")
+    @Field("obra_id")
     private Long obraId;
 
+    @Field("observaciones")
     private String observaciones;
 
-    @Column(name = "monto_total", precision = 19, scale = 2)
+    @Field("monto_total")
     private BigDecimal montoTotal;
 
-    @Enumerated(EnumType.STRING)
+    @Field("estado")
     private EstadoPedido estado;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Field("detalles")
     private List<DetallePedido> detalles;
 
     // Constructor por defecto
@@ -45,11 +44,11 @@ public class Pedido {
     }
 
     // Getters y Setters
-    public Long getId() {
+    public String getId() { // Cambiar retorno de Long a String
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) { // Cambiar parámetro de Long a String
         this.id = id;
     }
 

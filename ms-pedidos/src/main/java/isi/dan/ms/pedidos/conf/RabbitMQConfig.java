@@ -18,7 +18,7 @@ public class RabbitMQConfig {
     // Configuración para órdenes ejecutadas (descuento de stock)
     public static final String ORDEN_EJECUTADA_QUEUE = "orden.ejecutada.queue";
     public static final String ORDEN_EJECUTADA_EXCHANGE = "orden.ejecutada.exchange";
-    public static final String ORDEN_EJECUTADA_ROUTING_KEY = "orden.ejecutada";
+    public static final String ORDEN_EJECUTADA_ROUTING_KEY = "orden.ejecutada.routing.key";
 
     // Configuración para devolución de stock
     public static final String STOCK_DEVOLUCION_QUEUE = "stock.devolucion.queue";
