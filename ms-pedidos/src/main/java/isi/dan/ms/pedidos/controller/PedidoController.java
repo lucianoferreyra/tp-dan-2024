@@ -11,6 +11,7 @@ import isi.dan.ms.pedidos.servicio.PedidoService;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pedidos")
@@ -59,8 +60,9 @@ public class PedidoController {
     @PutMapping("/{id}/estado")
     public ResponseEntity<Pedido> actualizarEstadoPedido(
             @PathVariable String id,
-            @RequestParam Pedido.EstadoPedido nuevoEstado) {
+            @RequestBody Map<String, Pedido.EstadoPedido> request) {
         try {
+            Pedido.EstadoPedido nuevoEstado = request.get("nuevoEstado");
             Pedido pedidoActualizado = pedidoService.actualizarEstadoPedido(id, nuevoEstado);
             if (pedidoActualizado != null) {
                 return ResponseEntity.ok(pedidoActualizado);

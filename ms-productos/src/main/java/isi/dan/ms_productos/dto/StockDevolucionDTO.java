@@ -3,7 +3,7 @@ package isi.dan.ms_productos.dto;
 import java.util.List;
 
 public class StockDevolucionDTO {
-  private Long pedidoId;
+  private String pedidoId;
   private String numeroPedido;
   private String motivo;
   private List<ItemDevolucionDTO> items;
@@ -13,7 +13,7 @@ public class StockDevolucionDTO {
   }
 
   // Constructor con parámetros
-  public StockDevolucionDTO(Long pedidoId, String numeroPedido, String motivo, List<ItemDevolucionDTO> items) {
+  public StockDevolucionDTO(String pedidoId, String numeroPedido, String motivo, List<ItemDevolucionDTO> items) {
     this.pedidoId = pedidoId;
     this.numeroPedido = numeroPedido;
     this.motivo = motivo;
@@ -21,11 +21,11 @@ public class StockDevolucionDTO {
   }
 
   // Getters y Setters
-  public Long getPedidoId() {
+  public String getPedidoId() {
     return pedidoId;
   }
 
-  public void setPedidoId(Long pedidoId) {
+  public void setPedidoId(String pedidoId) {
     this.pedidoId = pedidoId;
   }
 
