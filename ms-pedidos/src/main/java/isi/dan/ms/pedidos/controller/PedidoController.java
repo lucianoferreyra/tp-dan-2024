@@ -31,8 +31,10 @@ public class PedidoController {
     }
 
     @GetMapping
-    public List<Pedido> getAllPedidos() {
-        return pedidoService.getAllPedidos();
+    public List<Pedido> getAllPedidos(
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) Pedido.EstadoPedido estado) {
+        return pedidoService.getAllPedidos(clienteId, estado);
     }
 
     @GetMapping("/{id}")

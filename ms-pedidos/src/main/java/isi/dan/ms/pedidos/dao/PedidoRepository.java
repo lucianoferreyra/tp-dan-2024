@@ -11,5 +11,11 @@ import org.springframework.stereotype.Repository;
 public interface PedidoRepository extends MongoRepository<Pedido, String> {
 
   List<Pedido> findByClienteIdAndEstadoIn(Long clienteId, List<Pedido.EstadoPedido> estados);
+  
+  List<Pedido> findByClienteId(Long clienteId);
+  
+  List<Pedido> findByEstado(Pedido.EstadoPedido estado);
+  
+  List<Pedido> findByClienteIdAndEstado(Long clienteId, Pedido.EstadoPedido estado);
 }
 

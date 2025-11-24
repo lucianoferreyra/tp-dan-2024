@@ -350,8 +350,28 @@ public class PedidoService {
         }
     }
 
-    public List<Pedido> getAllPedidos() {
-        return pedidoRepository.findAll();
+    public List<Pedido> getAllPedidos(Long clienteId, Pedido.EstadoPedido estado) {
+        // Si ambos parámetros son null, devolver todos
+        if (clienteId == null && estado == null) {
+            log.info("Obteniendo todos los pedidos sin filtros");
+            return pedidoRepository.findAll();
+        }
+        
+        // Si solo hay clienteId
+        if (clienteId != null && estado == null) {
+            log.info("Filtrando pedidos por clienteId: {}", clienteId);
+            return pedidoRepository.findByClienteId(clienteId);
+        }
+        
+        // Si solo hay estado
+        if (clienteId == null && estado != null) {
+            log.info("Filtrando pedidos por estado: {}", estado);
+            return pedidoRepository.findByEstado(estado);
+        }
+        
+        // Si hay ambos parámetros
+        log.info("Filtrando pedidos por clienteId: {} y estado: {}", clienteId, estado);
+        return pedidoRepository.findByClienteIdAndEstado(clienteId, estado);
     }
 
     public Pedido getPedidoById(String id) {
