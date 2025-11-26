@@ -109,4 +109,25 @@ public class ObraController {
             return ResponseEntity.badRequest().body(error);
         }
     }
+
+    @PutMapping("/{id}/asignar-cliente/{clienteId}")
+    @LogExecutionTime
+    public ResponseEntity<Map<String, Object>> asignarCliente(
+            @PathVariable Integer id,
+            @PathVariable Integer clienteId) {
+        try {
+            Obra obraAsignada = obraService.asignarCliente(id, clienteId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("obra", obraAsignada);
+            response.put("estado", obraAsignada.getEstado());
+            response.put("mensaje", "Cliente asignado exitosamente. Estado de la obra: " + obraAsignada.getEstado());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 }

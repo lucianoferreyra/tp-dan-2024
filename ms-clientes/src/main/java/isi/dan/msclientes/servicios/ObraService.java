@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import isi.dan.msclientes.dao.ClienteRepository;
 import isi.dan.msclientes.dao.ObraRepository;
 import isi.dan.msclientes.enums.EstadoObra;
 import isi.dan.msclientes.model.Cliente;
@@ -17,6 +18,9 @@ public class ObraService {
 
     @Autowired
     private ObraRepository obraRepository;
+
+    @Autowired
+    private ClienteRepository clienteRepository;
 
     public List<Obra> findAll() {
         return obraRepository.findAll();
@@ -143,6 +147,56 @@ public class ObraService {
 
         // Enable the work
         obra.setEstado(EstadoObra.HABILITADA);
+        return update(obra);
+    }
+
+    /**
+     * Assigns a client to a work and determines its status based on the client's active works limit
+     */
+    @Transactional
+    public Obra asignarCliente(Integer obraId, Integer clienteId) {
+        // Find the work
+        Optional<Obra> obraOpt = findById(obraId);
+        if (obraOpt.isEmpty()) {
+            throw new RuntimeException("Obra no encontrada con ID: " + obraId);
+        }
+
+        // Find the client
+        Optional<Cliente> clienteOpt = clienteRepository.findById(clienteId);
+        if (clienteOpt.isEmpty()) {
+            throw new RuntimeException("Cliente no encontrado con ID: " + clienteId);
+        }
+
+        Obra obra = obraOpt.get();
+        Cliente cliente = clienteOpt.get();
+
+        // Check if work is already finalized
+        if (obra.getEstado() == EstadoObra.FINALIZADA) {
+            throw new RuntimeException("No se puede asignar un cliente a una obra finalizada");
+        }
+
+        // Assign the client
+        obra.setCliente(cliente);
+
+        // Determine the work status based on the client's active works limit
+        EstadoObra nuevoEstado;
+        if (cliente.getMaximoCantidadObrasEnEjecucion() == null) {
+            // No limit defined, enable the work
+            nuevoEstado = EstadoObra.HABILITADA;
+        } else {
+            // Count current active works for this client
+            long obrasActivas = obraRepository.countByClienteAndEstado(cliente, EstadoObra.HABILITADA);
+
+            if (obrasActivas < cliente.getMaximoCantidadObrasEnEjecucion()) {
+                // Under the limit, enable the work
+                nuevoEstado = EstadoObra.HABILITADA;
+            } else {
+                // Reached the limit, set as pending
+                nuevoEstado = EstadoObra.PENDIENTE;
+            }
+        }
+
+        obra.setEstado(nuevoEstado);
         return update(obra);
     }
 }
