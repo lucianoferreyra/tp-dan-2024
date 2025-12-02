@@ -130,6 +130,17 @@
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-hibernate5-jakarta</artifactId>
 		</dependency>
+		<!-- Telegram Bot -->
+		<dependency>
+			<groupId>org.telegram</groupId>
+			<artifactId>telegrambots-springboot-longpolling-starter</artifactId>
+			<version>7.10.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.telegram</groupId>
+			<artifactId>telegrambots-client</artifactId>
+			<version>7.10.0</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>

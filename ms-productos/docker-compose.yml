@@ -45,6 +45,9 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_EUREKA_DEFAULT_ZONE: http://ms-eureka-svc:8761/eureka/
       SPRING_INSTANCIA: ms-productos-svc-1
+      TELEGRAM_ENABLED: true
+      TELEGRAM_BOT_TOKEN: 8413233096:AAHY65IYNGtBMdzL5Ayj5nxsds_3rOTeCYE
+      TELEGRAM_CHAT_ID: 1726397406
     ports:
       - "6180:8080"
     depends_on:

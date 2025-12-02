@@ -20,6 +20,9 @@ public class StockService {
   @Autowired
   private ProductoService productoService;
 
+  @Autowired
+  private TelegramNotificationService telegramNotificationService;
+
   Logger log = LoggerFactory.getLogger(StockService.class);
 
   @RabbitListener(queues = RabbitMQConfig.ORDEN_EJECUTADA_QUEUE)
@@ -106,8 +109,8 @@ public class StockService {
   }
 
   private void enviarAlertaStockMinimo(Producto producto) {
-    // TODO: Implementar envío de alerta (email, mensaje a cola, etc.)
     log.info("Enviando alerta de stock mínimo para producto: {}", producto.getNombre());
+    telegramNotificationService.enviarAlertaStockMinimo(producto);
   }
 
   // Método para rollback manual en caso de error
