@@ -48,7 +48,7 @@ public class Producto {
     private Integer stockMinimo;
 
     // Relación con Categoria
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "categoria_id", nullable = false)
     @NotNull(message = "La categoría es obligatoria")
     private Categoria categoria;
