@@ -34,11 +34,10 @@
       </encoder>
     </appender>
   
-    <root level="INFO">
-      <appender-ref ref="STDOUT" />
-    </root>
-  
-    <logger name="isi.dan.ms_productos" additivity="false">
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="GELF" />
+  </root>    <logger name="isi.dan.ms_productos" additivity="false">
       <level value="DEBUG"/>
       <appender-ref ref="GELF" />
       <appender-ref ref="STDOUT"/>

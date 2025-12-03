@@ -55,6 +55,7 @@ services:
     networks:
       - productos-net
       - backend-net
+      - graylog
 
 
 networks:
@@ -62,6 +63,8 @@ networks:
     external: true
   productos-net:
     driver: bridge
+  graylog:
+    external: true
 
 volumes:
   pg-data:
