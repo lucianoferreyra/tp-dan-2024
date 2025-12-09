@@ -47,7 +47,7 @@ services:
       SPRING_EUREKA_DEFAULT_ZONE: http://ms-eureka-svc:8761/eureka/
       SPRING_INSTANCIA: ms-clientes-svc-1
       DAN_CLIENTES_MAXIMO_DESCUBIERTO_DEFAULT: 10000
-      MS_PEDIDOS_URL: http://host.docker.internal:6280
+      MS_PEDIDOS_URL: http://ms-pedidos-svc:8080
     ports:
       - "6080:8080"
     depends_on:
@@ -73,6 +73,7 @@ services:
       SPRING_EUREKA_DEFAULT_ZONE: http://ms-eureka-svc:8761/eureka/
       SPRING_INSTANCIA: ms-clientes-svc-2
       DAN_CLIENTES_MAXIMO_DESCUBIERTO_DEFAULT: 10000
+      MS_PEDIDOS_URL: http://ms-pedidos-svc:8080
     ports:
       - "6081:8080"
     depends_on:
@@ -98,6 +99,7 @@ services:
       SPRING_EUREKA_DEFAULT_ZONE: http://ms-eureka-svc:8761/eureka/
       SPRING_INSTANCIA: ms-clientes-svc-3
       DAN_CLIENTES_MAXIMO_DESCUBIERTO_DEFAULT: 10000
+      MS_PEDIDOS_URL: http://ms-pedidos-svc:8080
     ports:
       - "6082:8080"
     depends_on:
