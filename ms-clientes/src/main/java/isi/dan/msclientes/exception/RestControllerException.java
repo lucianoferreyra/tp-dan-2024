@@ -22,6 +22,27 @@ public class RestControllerException {
         return new ResponseEntity<ErrorInfo>(new ErrorInfo(Instant.now(),ex.getMessage(),detalle,HttpStatus.NOT_FOUND.value()), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(UsuarioNotFoundException.class)
+    public ResponseEntity<ErrorInfo> handleUsuarioNotFoundException(UsuarioNotFoundException ex) {
+        logger.error("ERROR Buscando Usuario", ex);
+        String detalle = ex.getCause() == null ? "Usuario no encontrado" : ex.getCause().getMessage();
+        return new ResponseEntity<ErrorInfo>(new ErrorInfo(Instant.now(), ex.getMessage(), detalle, HttpStatus.NOT_FOUND.value()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(DniDuplicadoException.class)
+    public ResponseEntity<ErrorInfo> handleDniDuplicadoException(DniDuplicadoException ex) {
+        logger.error("ERROR DNI Duplicado", ex);
+        String detalle = ex.getCause() == null ? "DNI duplicado" : ex.getCause().getMessage();
+        return new ResponseEntity<ErrorInfo>(new ErrorInfo(Instant.now(), ex.getMessage(), detalle, HttpStatus.CONFLICT.value()), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(EmailUsuarioDuplicadoException.class)
+    public ResponseEntity<ErrorInfo> handleEmailUsuarioDuplicadoException(EmailUsuarioDuplicadoException ex) {
+        logger.error("ERROR Email de Usuario Duplicado", ex);
+        String detalle = ex.getCause() == null ? "Email de usuario duplicado" : ex.getCause().getMessage();
+        return new ResponseEntity<ErrorInfo>(new ErrorInfo(Instant.now(), ex.getMessage(), detalle, HttpStatus.CONFLICT.value()), HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> handleOtherExceptions(Exception ex) {
         logger.error("ERROR MS CLIENTES", ex);

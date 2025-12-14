@@ -1,13 +1,12 @@
 package isi.dan.msclientes.model;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -38,5 +37,9 @@ public class Cliente {
 
     @Column(name="MAXIMO_OBRAS")
     private Integer maximoCantidadObrasEnEjecucion;
+    
+    @ManyToMany(mappedBy = "clientes")
+    @JsonIgnoreProperties("clientes")
+    private List<Usuario> usuarios = new ArrayList<>();
     
 }

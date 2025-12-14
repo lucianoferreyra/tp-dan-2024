@@ -34,7 +34,12 @@ public class ClienteController {
 
     @GetMapping
     @LogExecutionTime
-    public List<Cliente> getAll(@RequestParam(required = false) String searchTerm) {
+    public List<Cliente> getAll(
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) Integer usuarioId) {
+        if (usuarioId != null) {
+            return clienteService.findByUsuarioId(usuarioId, searchTerm);
+        }
         return clienteService.findAll(searchTerm);
     }
 
@@ -55,8 +60,10 @@ public class ClienteController {
 
     @PostMapping
     @LogExecutionTime
-    public Cliente create(@RequestBody @Validated Cliente cliente) {
-        return clienteService.save(cliente);
+    public Cliente create(
+            @RequestBody @Validated Cliente cliente,
+            @RequestParam Integer usuarioId) {
+        return clienteService.save(cliente, usuarioId);
     }
 
     @PutMapping("/{id}")

@@ -6,10 +6,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import isi.dan.msclientes.dao.ClienteRepository;
 import isi.dan.msclientes.dao.ObraRepository;
+import isi.dan.msclientes.dao.UsuarioRepository;
 import isi.dan.msclientes.enums.EstadoObra;
 import isi.dan.msclientes.model.Cliente;
 import isi.dan.msclientes.model.Obra;
+import isi.dan.msclientes.model.Usuario;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,8 +26,23 @@ public class ObraService {
     @Autowired
     private ClienteRepository clienteRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
     public List<Obra> findAll() {
         return obraRepository.findAll();
+    }
+
+    public List<Obra> findByUsuarioId(Integer usuarioId) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
+        if (usuarioOpt.isPresent() && usuarioOpt.get().getClientes() != null && !usuarioOpt.get().getClientes().isEmpty()) {
+            List<Obra> todasLasObras = new ArrayList<>();
+            for (Cliente cliente : usuarioOpt.get().getClientes()) {
+                todasLasObras.addAll(obraRepository.findByCliente(cliente));
+            }
+            return todasLasObras;
+        }
+        return Collections.emptyList();
     }
 
     public Optional<Obra> findById(Integer id) {

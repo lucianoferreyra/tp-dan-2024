@@ -10,9 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import isi.dan.msclientes.dao.ClienteRepository;
+import isi.dan.msclientes.dao.UsuarioRepository;
 import isi.dan.msclientes.model.Cliente;
+import isi.dan.msclientes.model.Usuario;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,6 +27,9 @@ public class ClienteService {
 
     @Autowired
     private ClienteRepository clienteRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     @LoadBalanced
@@ -51,11 +57,52 @@ public class ClienteService {
         return clienteRepository.findByCorreoElectronico(email);
     }
 
+    public List<Cliente> findByUsuarioId(Integer usuarioId, String searchTerm) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
+        if (usuarioOpt.isPresent() && usuarioOpt.get().getClientes() != null) {
+            List<Cliente> clientes = usuarioOpt.get().getClientes();
+            
+            // Aplicar los mismos filtros que findAll
+            return clientes.stream()
+                .filter(c -> searchTerm == null || 
+                    c.getNombre().toLowerCase().contains(searchTerm.toLowerCase()) ||
+                    c.getCorreoElectronico().toLowerCase().contains(searchTerm.toLowerCase()) ||
+                    c.getCuit().contains(searchTerm))
+                .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
     public Cliente save(Cliente cliente) {
         if (cliente.getMaximoDescubierto() == null) {
             cliente.setMaximoDescubierto(maximoDescubiertoDefault);
         }
         return clienteRepository.save(cliente);
+    }
+
+    public Cliente save(Cliente cliente, Integer usuarioId) {
+        if (cliente.getMaximoDescubierto() == null) {
+            cliente.setMaximoDescubierto(maximoDescubiertoDefault);
+        }
+        
+        // Guardar el cliente primero
+        Cliente clienteGuardado = clienteRepository.save(cliente);
+        
+        // Asociar el cliente al usuario
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            if (usuario.getClientes() == null) {
+                usuario.setClientes(new java.util.ArrayList<>());
+            }
+            usuario.getClientes().add(clienteGuardado);
+            usuarioRepository.save(usuario);
+            log.info("Cliente {} asociado automáticamente al usuario {}", clienteGuardado.getId(), usuarioId);
+        } else {
+            log.warn("No se pudo asociar el cliente al usuario {} porque no existe", usuarioId);
+        }
+        
+        return clienteGuardado;
     }
 
     public Cliente update(Cliente cliente) {
