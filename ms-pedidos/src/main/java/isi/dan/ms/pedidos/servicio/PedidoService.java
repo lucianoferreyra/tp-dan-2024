@@ -239,9 +239,7 @@ public class PedidoService {
             // Estados que comprometen el saldo del cliente
             List<Pedido.EstadoPedido> estadosPendientes = Arrays.asList(
                     Pedido.EstadoPedido.ACEPTADO,
-                    Pedido.EstadoPedido.EN_PREPARACION,
-                    Pedido.EstadoPedido.CONFIRMADO,
-                    Pedido.EstadoPedido.ENVIADO);
+                    Pedido.EstadoPedido.EN_PREPARACION);
 
             List<Pedido> pedidosPendientes = pedidoRepository.findByClienteIdAndEstadoIn(clienteId, estadosPendientes);
 
@@ -292,12 +290,10 @@ public class PedidoService {
         // Solo permitir actualizar a ENTREGADO o CANCELADO desde ciertos estados
         switch (nuevoEstado) {
             case ENTREGADO:
-                return estadoActual == Pedido.EstadoPedido.ENVIADO;
+                return estadoActual == Pedido.EstadoPedido.EN_PREPARACION;
             case CANCELADO:
                 return estadoActual == Pedido.EstadoPedido.ACEPTADO ||
-                        estadoActual == Pedido.EstadoPedido.EN_PREPARACION ||
-                        estadoActual == Pedido.EstadoPedido.CONFIRMADO ||
-                        estadoActual == Pedido.EstadoPedido.ENVIADO;
+                        estadoActual == Pedido.EstadoPedido.EN_PREPARACION;
             default:
                 return false;
         }
@@ -308,9 +304,7 @@ public class PedidoService {
 
         // Solo devolver stock si el pedido había descontado stock previamente
         // (es decir, si estaba en EN_PREPARACION o estados posteriores)
-        if (estadoAnterior == Pedido.EstadoPedido.EN_PREPARACION ||
-                estadoAnterior == Pedido.EstadoPedido.CONFIRMADO ||
-                estadoAnterior == Pedido.EstadoPedido.ENVIADO) {
+        if (estadoAnterior == Pedido.EstadoPedido.EN_PREPARACION) {
 
             enviarMensajeDevolucionStock(pedido);
         } else {

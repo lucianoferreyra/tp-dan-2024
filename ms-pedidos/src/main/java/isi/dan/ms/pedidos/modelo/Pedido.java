@@ -40,7 +40,7 @@ public class Pedido {
     // Constructor por defecto
     public Pedido() {
         this.fechaPedido = LocalDateTime.now();
-        this.estado = EstadoPedido.PENDIENTE;
+        this.estado = EstadoPedido.ACEPTADO;
     }
 
     // Getters y Setters
@@ -117,6 +117,6 @@ public class Pedido {
     }
 
     public enum EstadoPedido {
-        PENDIENTE, ACEPTADO, EN_PREPARACION, CONFIRMADO, ENVIADO, ENTREGADO, CANCELADO, RECHAZADO, RECIBIDO
+        ACEPTADO, EN_PREPARACION, ENTREGADO, CANCELADO, RECHAZADO, RECIBIDO
     }
 }
