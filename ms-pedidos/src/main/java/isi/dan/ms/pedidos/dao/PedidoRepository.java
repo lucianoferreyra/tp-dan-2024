@@ -17,5 +17,10 @@ public interface PedidoRepository extends MongoRepository<Pedido, String> {
   List<Pedido> findByEstado(Pedido.EstadoPedido estado);
   
   List<Pedido> findByClienteIdAndEstado(Long clienteId, Pedido.EstadoPedido estado);
+  
+  // Métodos para filtrar por lista de clientes (userId)
+  List<Pedido> findByClienteIdIn(List<Long> clienteIds);
+  
+  List<Pedido> findByClienteIdInAndEstado(List<Long> clienteIds, Pedido.EstadoPedido estado);
 }
 

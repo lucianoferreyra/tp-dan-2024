@@ -24,17 +24,20 @@ public class PedidoController {
     public ResponseEntity<Pedido> createPedido(@RequestBody CrearPedidoDTO crearPedidoDTO) {
         try {
             Pedido pedido = pedidoService.savePedido(crearPedidoDTO);
-            return new ResponseEntity<>(pedido, HttpStatus.CREATED);
+            // return new ResponseEntity<>(pedido, HttpStatus.CREATED);
+            return ResponseEntity.status(HttpStatus.CREATED).body(pedido);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            // return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
     @GetMapping
     public List<Pedido> getAllPedidos(
+            @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Long clienteId,
             @RequestParam(required = false) Pedido.EstadoPedido estado) {
-        return pedidoService.getAllPedidos(clienteId, estado);
+        return pedidoService.getAllPedidos(userId, clienteId, estado);
     }
 
     @GetMapping("/{id}")

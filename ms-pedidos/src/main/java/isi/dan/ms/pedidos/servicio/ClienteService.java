@@ -56,4 +56,30 @@ public class ClienteService {
       return false;
     }
   }
+
+  public java.util.List<Long> obtenerClientesPorUsuario(Long userId) {
+    try {
+      String url = "http://MS-CLIENTES/api/clientes?usuarioId=" + userId;
+      log.info("Consultando clientes del usuario en URL: {}", url);
+
+      ClienteDTO[] clientes = restTemplate.getForObject(url, ClienteDTO[].class);
+      if (clientes == null || clientes.length == 0) {
+        log.info("No se encontraron clientes para el usuario: {}", userId);
+        return java.util.Collections.emptyList();
+      }
+
+      java.util.List<Long> clienteIds = java.util.Arrays.stream(clientes)
+          .map(ClienteDTO::getId)
+          .collect(java.util.stream.Collectors.toList());
+      
+      log.info("Encontrados {} clientes para el usuario {}: {}", clienteIds.size(), userId, clienteIds);
+      return clienteIds;
+    } catch (HttpClientErrorException.NotFound e) {
+      log.error("No se encontraron clientes para el usuario: {}", userId);
+      return java.util.Collections.emptyList();
+    } catch (Exception e) {
+      log.error("Error al consultar clientes del usuario: {}", e.getMessage());
+      return java.util.Collections.emptyList();
+    }
+  }
 }

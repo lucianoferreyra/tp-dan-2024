@@ -8,6 +8,7 @@ public class ClienteDTO {
   private String correoElectronico;
   private String cuit;
   private BigDecimal maximoDescubierto;
+  private Long userId;
 
   // Constructor por defecto
   public ClienteDTO() {
@@ -52,5 +53,13 @@ public class ClienteDTO {
 
   public void setMaximoDescubierto(BigDecimal maximoDescubierto) {
     this.maximoDescubierto = maximoDescubierto;
+  }
+
+  public Long getUserId() {
+    return userId;
+  }
+
+  public void setUserId(Long userId) {
+    this.userId = userId;
   }
 }

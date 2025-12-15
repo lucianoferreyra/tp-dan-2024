@@ -344,7 +344,43 @@ public class PedidoService {
         }
     }
 
-    public List<Pedido> getAllPedidos(Long clienteId, Pedido.EstadoPedido estado) {
+    public List<Pedido> getAllPedidos(Long userId, Long clienteId, Pedido.EstadoPedido estado) {
+        // Si hay userId, obtener los clientes de ese usuario
+        if (userId != null) {
+            List<Long> clienteIds = clienteService.obtenerClientesPorUsuario(userId);
+            
+            if (clienteIds.isEmpty()) {
+                log.info("No se encontraron clientes para el usuario: {}", userId);
+                return new ArrayList<>();
+            }
+            
+            // Si también se especificó un clienteId, validar que pertenezca al usuario
+            if (clienteId != null) {
+                if (!clienteIds.contains(clienteId)) {
+                    log.warn("El cliente {} no pertenece al usuario {}", clienteId, userId);
+                    return new ArrayList<>();
+                }
+                // Si el cliente pertenece al usuario, filtrar por ese cliente específico
+                if (estado != null) {
+                    log.info("Filtrando pedidos por userId: {}, clienteId: {} y estado: {}", userId, clienteId, estado);
+                    return pedidoRepository.findByClienteIdAndEstado(clienteId, estado);
+                } else {
+                    log.info("Filtrando pedidos por userId: {} y clienteId: {}", userId, clienteId);
+                    return pedidoRepository.findByClienteId(clienteId);
+                }
+            }
+            
+            // Filtrar por lista de clientes del usuario
+            if (estado != null) {
+                log.info("Filtrando pedidos por userId: {} ({} clientes) y estado: {}", userId, clienteIds.size(), estado);
+                return pedidoRepository.findByClienteIdInAndEstado(clienteIds, estado);
+            } else {
+                log.info("Filtrando pedidos por userId: {} ({} clientes)", userId, clienteIds.size());
+                return pedidoRepository.findByClienteIdIn(clienteIds);
+            }
+        }
+        
+        // Si no hay userId, usar la lógica anterior
         // Si ambos parámetros son null, devolver todos
         if (clienteId == null && estado == null) {
             log.info("Obteniendo todos los pedidos sin filtros");
