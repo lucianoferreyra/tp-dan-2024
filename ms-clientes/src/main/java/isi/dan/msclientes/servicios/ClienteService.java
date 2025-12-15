@@ -10,8 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import isi.dan.msclientes.dao.ClienteRepository;
+import isi.dan.msclientes.dao.ObraRepository;
 import isi.dan.msclientes.dao.UsuarioRepository;
 import isi.dan.msclientes.model.Cliente;
+import isi.dan.msclientes.model.Obra;
 import isi.dan.msclientes.model.Usuario;
 
 import java.math.BigDecimal;
@@ -30,6 +32,9 @@ public class ClienteService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private ObraRepository obraRepository;
 
     @Autowired
     @LoadBalanced
@@ -110,7 +115,32 @@ public class ClienteService {
     }
 
     public void deleteById(Integer id) {
-        clienteRepository.deleteById(id);
+        // Buscar el cliente
+        Optional<Cliente> clienteOpt = clienteRepository.findById(id);
+        if (clienteOpt.isPresent()) {
+            Cliente cliente = clienteOpt.get();
+            
+            // Verificar si el cliente tiene obras asociadas
+            List<Obra> obras = obraRepository.findByCliente(cliente);
+            if (obras != null && !obras.isEmpty()) {
+                log.warn("No se puede eliminar el cliente {} porque tiene {} obras asociadas", id, obras.size());
+                throw new IllegalStateException("No se puede eliminar el cliente porque tiene " + obras.size() + " obras asociadas");
+            }
+            
+            // Desasociar todos los usuarios de este cliente
+            List<Usuario> usuarios = cliente.getUsuarios();
+            if (usuarios != null && !usuarios.isEmpty()) {
+                for (Usuario usuario : usuarios) {
+                    usuario.getClientes().remove(cliente);
+                    usuarioRepository.save(usuario);
+                }
+                log.info("Desasociados {} usuarios del cliente {}", usuarios.size(), id);
+            }
+            
+            // Ahora eliminar el cliente
+            clienteRepository.deleteById(id);
+            log.info("Cliente {} eliminado correctamente", id);
+        }
     }
 
     public boolean verificarSaldoDisponible(Integer clienteId, BigDecimal montoPedido) {
