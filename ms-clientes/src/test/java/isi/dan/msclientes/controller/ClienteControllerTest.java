@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -51,6 +52,35 @@ public class ClienteControllerTest {
     }
 
     @Test
+    void testGetAllWithSearchTerm() throws Exception {
+        Mockito.when(clienteService.findAll("Test")).thenReturn(Collections.singletonList(cliente));
+
+        mockMvc.perform(get("/api/clientes")
+                .param("searchTerm", "Test"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].nombre").value("Test Cliente"));
+    }
+
+    @Test
+    void testGetAllByUsuarioId() throws Exception {
+        Mockito.when(clienteService.findByUsuarioId(1, null)).thenReturn(Collections.singletonList(cliente));
+
+        mockMvc.perform(get("/api/clientes")
+                .param("usuarioId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].nombre").value("Test Cliente"));
+    }
+
+    @Test
+    void testGetEcho() throws Exception {
+        mockMvc.perform(get("/api/clientes/echo"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(" - ")));
+    }
+
+    @Test
     void testGetById() throws Exception {
         Mockito.when(clienteService.findById(1)).thenReturn(Optional.of(cliente));
 
@@ -70,9 +100,10 @@ public class ClienteControllerTest {
 
     @Test
     void testCreate() throws Exception {
-        Mockito.when(clienteService.save(Mockito.any(Cliente.class))).thenReturn(cliente);
+        Mockito.when(clienteService.save(Mockito.any(Cliente.class), Mockito.eq(1))).thenReturn(cliente);
 
         mockMvc.perform(post("/api/clientes")
+                .param("usuarioId", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(cliente)))
                 .andExpect(status().isOk())
@@ -98,6 +129,37 @@ public class ClienteControllerTest {
 
         mockMvc.perform(delete("/api/clientes/1"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testVerificarSaldoCliente_ConSaldo() throws Exception {
+        BigDecimal monto = BigDecimal.valueOf(5000);
+        Mockito.when(clienteService.verificarSaldoDisponible(1, monto)).thenReturn(true);
+
+        mockMvc.perform(get("/api/clientes/1/saldo/5000"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("true"));
+    }
+
+    @Test
+    void testVerificarSaldoCliente_SinSaldo() throws Exception {
+        BigDecimal monto = BigDecimal.valueOf(15000);
+        Mockito.when(clienteService.verificarSaldoDisponible(1, monto)).thenReturn(false);
+
+        mockMvc.perform(get("/api/clientes/1/saldo/15000"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("false"));
+    }
+
+    @Test
+    void testVerificarSaldoCliente_Error() throws Exception {
+        BigDecimal monto = BigDecimal.valueOf(5000);
+        Mockito.when(clienteService.verificarSaldoDisponible(1, monto))
+                .thenThrow(new RuntimeException("Error en servicio"));
+
+        mockMvc.perform(get("/api/clientes/1/saldo/5000"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("false"));
     }
 
     private static String asJsonString(final Object obj) {
