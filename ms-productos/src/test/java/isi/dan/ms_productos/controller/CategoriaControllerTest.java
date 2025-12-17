@@ -38,13 +38,13 @@ class CategoriaControllerTest {
 
     @BeforeEach
     void setUp() {
-        categoria = new Categoria("Electrónica");
+        categoria = new Categoria("Cementos");
         categoria.setId(1L);
     }
 
     @Test
     void testGetAllCategorias() throws Exception {
-        Categoria categoria2 = new Categoria("Hogar");
+        Categoria categoria2 = new Categoria("Placas");
         categoria2.setId(2L);
 
         List<Categoria> categorias = Arrays.asList(categoria, categoria2);
@@ -55,9 +55,9 @@ class CategoriaControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id", is(1)))
-                .andExpect(jsonPath("$[0].nombre", is("Electrónica")))
+                .andExpect(jsonPath("$[0].nombre", is("Cementos")))
                 .andExpect(jsonPath("$[1].id", is(2)))
-                .andExpect(jsonPath("$[1].nombre", is("Hogar")));
+                .andExpect(jsonPath("$[1].nombre", is("Placas")));
 
         verify(categoriaService, times(1)).getAllCategorias();
     }
@@ -69,7 +69,7 @@ class CategoriaControllerTest {
         mockMvc.perform(get("/api/categorias/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.nombre", is("Electrónica")));
+                .andExpect(jsonPath("$.nombre", is("Cementos")));
 
         verify(categoriaService, times(1)).getCategoriaById(1L);
     }
@@ -87,14 +87,14 @@ class CategoriaControllerTest {
 
     @Test
     void testGetCategoriaByNombre_Success() throws Exception {
-        when(categoriaService.getCategoriaByNombre("Electrónica")).thenReturn(categoria);
+        when(categoriaService.getCategoriaByNombre("Cementos")).thenReturn(categoria);
 
-        mockMvc.perform(get("/api/categorias/nombre/Electrónica"))
+        mockMvc.perform(get("/api/categorias/nombre/Cementos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.nombre", is("Electrónica")));
+                .andExpect(jsonPath("$.nombre", is("Cementos")));
 
-        verify(categoriaService, times(1)).getCategoriaByNombre("Electrónica");
+        verify(categoriaService, times(1)).getCategoriaByNombre("Cementos");
     }
 
     @Test
@@ -110,12 +110,12 @@ class CategoriaControllerTest {
 
     @Test
     void testCreateCategoria_Success() throws Exception {
-        Categoria newCategoria = new Categoria("Deportes");
+        Categoria newCategoria = new Categoria("Perfiles");
 
-        Categoria savedCategoria = new Categoria("Deportes");
+        Categoria savedCategoria = new Categoria("Perfiles");
         savedCategoria.setId(3L);
 
-        when(categoriaService.existsByNombre("Deportes")).thenReturn(false);
+        when(categoriaService.existsByNombre("Perfiles")).thenReturn(false);
         when(categoriaService.saveCategoria(any(Categoria.class))).thenReturn(savedCategoria);
 
         mockMvc.perform(post("/api/categorias")
@@ -123,35 +123,35 @@ class CategoriaControllerTest {
                         .content(objectMapper.writeValueAsString(newCategoria)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(3)))
-                .andExpect(jsonPath("$.nombre", is("Deportes")));
+                .andExpect(jsonPath("$.nombre", is("Perfiles")));
 
-        verify(categoriaService, times(1)).existsByNombre("Deportes");
+        verify(categoriaService, times(1)).existsByNombre("Perfiles");
         verify(categoriaService, times(1)).saveCategoria(any(Categoria.class));
     }
 
     @Test
     void testCreateCategoria_Conflict() throws Exception {
-        Categoria newCategoria = new Categoria("Electrónica");
+        Categoria newCategoria = new Categoria("Cementos");
 
-        when(categoriaService.existsByNombre("Electrónica")).thenReturn(true);
+        when(categoriaService.existsByNombre("Cementos")).thenReturn(true);
 
         mockMvc.perform(post("/api/categorias")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newCategoria)))
                 .andExpect(status().isConflict());
 
-        verify(categoriaService, times(1)).existsByNombre("Electrónica");
+        verify(categoriaService, times(1)).existsByNombre("Cementos");
         verify(categoriaService, never()).saveCategoria(any(Categoria.class));
     }
 
     @Test
     void testUpdateCategoria_Success() throws Exception {
-        Categoria updateCategoria = new Categoria("Electrónica Actualizada");
+        Categoria updateCategoria = new Categoria("Cementos Especiales");
 
-        Categoria updatedCategoria = new Categoria("Electrónica Actualizada");
+        Categoria updatedCategoria = new Categoria("Cementos Especiales");
         updatedCategoria.setId(1L);
 
-        when(categoriaService.existsByNombre("Electrónica Actualizada")).thenReturn(false);
+        when(categoriaService.existsByNombre("Cementos Especiales")).thenReturn(false);
         when(categoriaService.updateCategoria(eq(1L), any(Categoria.class)))
                 .thenReturn(updatedCategoria);
 
@@ -160,21 +160,21 @@ class CategoriaControllerTest {
                         .content(objectMapper.writeValueAsString(updateCategoria)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.nombre", is("Electrónica Actualizada")));
+                .andExpect(jsonPath("$.nombre", is("Cementos Especiales")));
 
-        verify(categoriaService, times(1)).existsByNombre("Electrónica Actualizada");
+        verify(categoriaService, times(1)).existsByNombre("Cementos Especiales");
         verify(categoriaService, times(1)).updateCategoria(eq(1L), any(Categoria.class));
     }
 
     @Test
     void testUpdateCategoria_SameNameSameId() throws Exception {
-        Categoria updateCategoria = new Categoria("Electrónica");
+        Categoria updateCategoria = new Categoria("Cementos");
 
-        Categoria updatedCategoria = new Categoria("Electrónica");
+        Categoria updatedCategoria = new Categoria("Cementos");
         updatedCategoria.setId(1L);
 
-        when(categoriaService.existsByNombre("Electrónica")).thenReturn(true);
-        when(categoriaService.getCategoriaByNombre("Electrónica")).thenReturn(categoria);
+        when(categoriaService.existsByNombre("Cementos")).thenReturn(true);
+        when(categoriaService.getCategoriaByNombre("Cementos")).thenReturn(categoria);
         when(categoriaService.updateCategoria(eq(1L), any(Categoria.class)))
                 .thenReturn(updatedCategoria);
 
@@ -183,30 +183,30 @@ class CategoriaControllerTest {
                         .content(objectMapper.writeValueAsString(updateCategoria)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.nombre", is("Electrónica")));
+                .andExpect(jsonPath("$.nombre", is("Cementos")));
 
-        verify(categoriaService, times(1)).existsByNombre("Electrónica");
-        verify(categoriaService, times(1)).getCategoriaByNombre("Electrónica");
+        verify(categoriaService, times(1)).existsByNombre("Cementos");
+        verify(categoriaService, times(1)).getCategoriaByNombre("Cementos");
         verify(categoriaService, times(1)).updateCategoria(eq(1L), any(Categoria.class));
     }
 
     @Test
     void testUpdateCategoria_ConflictDifferentId() throws Exception {
-        Categoria updateCategoria = new Categoria("Hogar");
+        Categoria updateCategoria = new Categoria("Placas");
 
-        Categoria existingCategoria = new Categoria("Hogar");
+        Categoria existingCategoria = new Categoria("Placas");
         existingCategoria.setId(2L);
 
-        when(categoriaService.existsByNombre("Hogar")).thenReturn(true);
-        when(categoriaService.getCategoriaByNombre("Hogar")).thenReturn(existingCategoria);
+        when(categoriaService.existsByNombre("Placas")).thenReturn(true);
+        when(categoriaService.getCategoriaByNombre("Placas")).thenReturn(existingCategoria);
 
         mockMvc.perform(put("/api/categorias/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateCategoria)))
                 .andExpect(status().isConflict());
 
-        verify(categoriaService, times(1)).existsByNombre("Hogar");
-        verify(categoriaService, times(1)).getCategoriaByNombre("Hogar");
+        verify(categoriaService, times(1)).existsByNombre("Placas");
+        verify(categoriaService, times(1)).getCategoriaByNombre("Placas");
         verify(categoriaService, never()).updateCategoria(anyLong(), any(Categoria.class));
     }
 

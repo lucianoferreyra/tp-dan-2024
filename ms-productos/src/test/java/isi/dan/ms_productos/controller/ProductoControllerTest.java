@@ -56,25 +56,25 @@ class ProductoControllerTest {
 
     @BeforeEach
     void setUp() {
-        categoria = new Categoria("Electrónica");
+        categoria = new Categoria("Placas");
         categoria.setId(1L);
 
         producto = new Producto();
         producto.setId(1L);
-        producto.setNombre("Laptop");
-        producto.setDescripcion("Laptop de última generación");
-        producto.setPrecio(new BigDecimal("1500.00"));
+        producto.setNombre("Placa de Yeso");
+        producto.setDescripcion("Placa de yeso estándar 12.5mm");
+        producto.setPrecio(new BigDecimal("850.00"));
         producto.setStockActual(10);
         producto.setStockMinimo(5);
         producto.setCategoria(categoria);
         producto.setDescuentoPromocional(BigDecimal.ZERO);
 
         productoCreateDTO = new ProductoCreateDTO(
-                "Laptop",
-                "Laptop de última generación",
+                "Placa de Yeso",
+                "Placa de yeso estándar 12.5mm",
                 1L,
                 5,
-                new BigDecimal("1500.00"),
+                new BigDecimal("850.00"),
                 BigDecimal.ZERO
         );
     }
@@ -88,9 +88,9 @@ class ProductoControllerTest {
                         .content(objectMapper.writeValueAsString(productoCreateDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.nombre", is("Laptop")))
-                .andExpect(jsonPath("$.descripcion", is("Laptop de última generación")))
-                .andExpect(jsonPath("$.precio", is(1500.00)))
+                .andExpect(jsonPath("$.nombre", is("Placa de Yeso")))
+                .andExpect(jsonPath("$.descripcion", is("Placa de yeso estándar 12.5mm")))
+                .andExpect(jsonPath("$.precio", is(850.00)))
                 .andExpect(jsonPath("$.stockActual", is(10)))
                 .andExpect(jsonPath("$.stockMinimo", is(5)));
 
@@ -114,9 +114,9 @@ class ProductoControllerTest {
     void testGetAllProductos_WithoutFilters() throws Exception {
         Producto producto2 = new Producto();
         producto2.setId(2L);
-        producto2.setNombre("Mouse");
-        producto2.setDescripcion("Mouse inalámbrico");
-        producto2.setPrecio(new BigDecimal("25.00"));
+        producto2.setNombre("Cemento Portland");
+        producto2.setDescripcion("Cemento Portland tipo CPN-40");
+        producto2.setPrecio(new BigDecimal("450.00"));
         producto2.setStockActual(50);
         producto2.setStockMinimo(10);
         producto2.setCategoria(categoria);
@@ -129,8 +129,8 @@ class ProductoControllerTest {
         mockMvc.perform(get("/api/productos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].nombre", is("Laptop")))
-                .andExpect(jsonPath("$[1].nombre", is("Mouse")));
+                .andExpect(jsonPath("$[0].nombre", is("Placa de Yeso")))
+                .andExpect(jsonPath("$[1].nombre", is("Cemento Portland")));
 
         verify(productoService, times(1)).getAllProductos(null, null, null, null, null);
     }
@@ -139,22 +139,22 @@ class ProductoControllerTest {
     void testGetAllProductos_WithFilters() throws Exception {
         List<Producto> productos = Arrays.asList(producto);
 
-        when(productoService.getAllProductos(eq("Laptop"), eq(new BigDecimal("1000")),
-                eq(new BigDecimal("2000")), eq(5), eq(20)))
+        when(productoService.getAllProductos(eq("Placa de Yeso"), eq(new BigDecimal("500")),
+                eq(new BigDecimal("1000")), eq(5), eq(20)))
                 .thenReturn(productos);
 
         mockMvc.perform(get("/api/productos")
-                        .param("nombre", "Laptop")
-                        .param("precioMin", "1000")
-                        .param("precioMax", "2000")
+                        .param("nombre", "Placa de Yeso")
+                        .param("precioMin", "500")
+                        .param("precioMax", "1000")
                         .param("stockMin", "5")
                         .param("stockMax", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].nombre", is("Laptop")));
+                .andExpect(jsonPath("$[0].nombre", is("Placa de Yeso")));
 
         verify(productoService, times(1))
-                .getAllProductos(eq("Laptop"), eq(new BigDecimal("1000")),
+                .getAllProductos(eq("Placa de Yeso"), eq(new BigDecimal("500")),
                         eq(new BigDecimal("2000")), eq(5), eq(20));
     }
 
@@ -165,8 +165,8 @@ class ProductoControllerTest {
         mockMvc.perform(get("/api/productos/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.nombre", is("Laptop")))
-                .andExpect(jsonPath("$.precio", is(1500.00)));
+                .andExpect(jsonPath("$.nombre", is("Placa de Yeso")))
+                .andExpect(jsonPath("$.precio", is(850.00)));
 
         verify(productoService, times(1)).getProductoById(1L);
     }
@@ -185,18 +185,18 @@ class ProductoControllerTest {
     @Test
     void testUpdateProducto_Success() throws Exception {
         ProductoUpdateDTO updateDTO = new ProductoUpdateDTO();
-        updateDTO.setNombre("Laptop Actualizada");
-        updateDTO.setDescripcion("Nueva descripción");
-        updateDTO.setPrecio(new BigDecimal("1600.00"));
+        updateDTO.setNombre("Placa de Yeso Reforzada");
+        updateDTO.setDescripcion("Placa de yeso resistente a la humedad");
+        updateDTO.setPrecio(new BigDecimal("950.00"));
         updateDTO.setDescuentoPromocional(new BigDecimal("5.00"));
         updateDTO.setStockMinimo(6);
         updateDTO.setCategoriaId(1L);
 
         Producto updatedProducto = new Producto();
         updatedProducto.setId(1L);
-        updatedProducto.setNombre("Laptop Actualizada");
-        updatedProducto.setDescripcion("Nueva descripción");
-        updatedProducto.setPrecio(new BigDecimal("1600.00"));
+        updatedProducto.setNombre("Placa de Yeso Reforzada");
+        updatedProducto.setDescripcion("Placa de yeso resistente a la humedad");
+        updatedProducto.setPrecio(new BigDecimal("950.00"));
         updatedProducto.setStockMinimo(6);
         updatedProducto.setCategoria(categoria);
 
@@ -207,9 +207,9 @@ class ProductoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nombre", is("Laptop Actualizada")))
-                .andExpect(jsonPath("$.descripcion", is("Nueva descripción")))
-                .andExpect(jsonPath("$.precio", is(1600.00)));
+                .andExpect(jsonPath("$.nombre", is("Placa de Yeso Reforzada")))
+                .andExpect(jsonPath("$.descripcion", is("Placa de yeso resistente a la humedad")))
+                .andExpect(jsonPath("$.precio", is(950.00)));
 
         verify(productoService, times(1)).updateProducto(eq(1L), any(ProductoUpdateDTO.class));
     }
@@ -217,8 +217,8 @@ class ProductoControllerTest {
     @Test
     void testUpdateProducto_NotFound() throws Exception {
         ProductoUpdateDTO updateDTO = new ProductoUpdateDTO();
-        updateDTO.setNombre("Laptop Actualizada");
-        updateDTO.setPrecio(new BigDecimal("1600.00"));
+        updateDTO.setNombre("Placa de Yeso Reforzada");
+        updateDTO.setPrecio(new BigDecimal("950.00"));
         updateDTO.setDescuentoPromocional(new BigDecimal("5.00"));
         updateDTO.setStockMinimo(6);
         updateDTO.setCategoriaId(1L);
@@ -237,8 +237,8 @@ class ProductoControllerTest {
     @Test
     void testUpdateProducto_CategoriaNotFound() throws Exception {
         ProductoUpdateDTO updateDTO = new ProductoUpdateDTO();
-        updateDTO.setNombre("Laptop Actualizada");
-        updateDTO.setPrecio(new BigDecimal("1600.00"));
+        updateDTO.setNombre("Placa de Yeso Reforzada");
+        updateDTO.setPrecio(new BigDecimal("950.00"));
         updateDTO.setDescuentoPromocional(new BigDecimal("5.00"));
         updateDTO.setStockMinimo(6);
         updateDTO.setCategoriaId(999L);
@@ -276,11 +276,11 @@ class ProductoControllerTest {
 
     @Test
     void testProcesarOrdenProvision_Success() throws Exception {
-        OrdenProvisionDTO ordenDTO = new OrdenProvisionDTO(1L, 20, new BigDecimal("1400.00"));
+        OrdenProvisionDTO ordenDTO = new OrdenProvisionDTO(1L, 20, new BigDecimal("800.00"));
 
         Producto productoActualizado = new Producto();
         productoActualizado.setId(1L);
-        productoActualizado.setNombre("Laptop");
+        productoActualizado.setNombre("Placa de Yeso");
         productoActualizado.setStockActual(30);
 
         when(productoService.procesarOrdenProvision(any(OrdenProvisionDTO.class)))
@@ -298,7 +298,7 @@ class ProductoControllerTest {
 
     @Test
     void testProcesarOrdenProvision_ProductoNotFound() throws Exception {
-        OrdenProvisionDTO ordenDTO = new OrdenProvisionDTO(999L, 20, new BigDecimal("1400.00"));
+        OrdenProvisionDTO ordenDTO = new OrdenProvisionDTO(999L, 20, new BigDecimal("800.00"));
 
         when(productoService.procesarOrdenProvision(any(OrdenProvisionDTO.class)))
                 .thenThrow(new ProductoNotFoundException(999L));
@@ -317,8 +317,8 @@ class ProductoControllerTest {
 
         Producto productoConDescuento = new Producto();
         productoConDescuento.setId(1L);
-        productoConDescuento.setNombre("Laptop");
-        productoConDescuento.setPrecio(new BigDecimal("1500.00"));
+        productoConDescuento.setNombre("Placa de Yeso");
+        productoConDescuento.setPrecio(new BigDecimal("850.00"));
         productoConDescuento.setDescuentoPromocional(new BigDecimal("10.00"));
 
         when(productoService.actualizarDescuentoPromocional(eq(1L), any(DescuentoPromocionalDTO.class)))
