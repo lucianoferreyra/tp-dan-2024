@@ -16,7 +16,7 @@ public class MsClientesApplication {
 	}
 
 	@Bean
-    @LoadBalanced  // This enables service discovery
+    @LoadBalanced
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }

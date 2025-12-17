@@ -16,7 +16,7 @@ public class MsPedidosApplication {
 	}
 
 	@Bean
-	@LoadBalanced // This enables service discovery
+	@LoadBalanced
 	public RestTemplate restTemplate() {
 		return new RestTemplate();
 	}
