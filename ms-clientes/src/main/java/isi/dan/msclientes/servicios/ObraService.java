@@ -45,6 +45,14 @@ public class ObraService {
         return Collections.emptyList();
     }
 
+    public List<Obra> findByClienteId(Integer clienteId) {
+        Optional<Cliente> clienteOpt = clienteRepository.findById(clienteId);
+        if (clienteOpt.isPresent()) {
+            return obraRepository.findByCliente(clienteOpt.get());
+        }
+        return Collections.emptyList();
+    }
+
     public Optional<Obra> findById(Integer id) {
         return obraRepository.findById(id);
     }

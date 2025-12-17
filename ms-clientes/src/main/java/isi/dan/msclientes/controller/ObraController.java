@@ -22,9 +22,13 @@ public class ObraController {
 
     @GetMapping
     @LogExecutionTime
-    public List<Obra> getAll(@RequestParam(required = false) Integer usuarioId) {
+    public List<Obra> getAll(@RequestParam(required = false) Integer usuarioId, 
+                              @RequestParam(required = false) Integer clienteId) {
         if (usuarioId != null) {
             return obraService.findByUsuarioId(usuarioId);
+        }
+        if (clienteId != null) {
+            return obraService.findByClienteId(clienteId);
         }
         return obraService.findAll();
     }
